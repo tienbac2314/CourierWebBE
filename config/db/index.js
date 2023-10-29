@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
-const { DB_USER, DB_PASS, DB_NAME } = require("../");
+const { DB_USER, DB_PASS } = require("../");
 
 mongoose.connect(
-  `mongodb+srv://${DB_USER}:${DB_PASS}@cluster0.eoppj.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`
+  `mongodb+srv://${DB_USER}:${DB_PASS}@magicpost.c17ghyd.mongodb.net/?retryWrites=true&w=majority`
 );
+//mongodb+srv://MagicPost:12345@magicpost.c17ghyd.mongodb.net/?retryWrites=true&w=majority
 
 module.exports = mongoose;
