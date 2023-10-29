@@ -5,19 +5,20 @@ const { insertNewDocument, findOne } = require("../../../helpers");
 const Joi = require("joi");
 const { send_email } = require("../../../lib");
 const schema = Joi.object({
-  first_name: Joi.string().required(),
-  last_name: Joi.string().required(),
-  username: Joi.string().required(),
+  // first_name: Joi.string().required(),
+  // last_name: Joi.string().required(),
+  name: Joi.string().required(),
   email: Joi.string().email().required(),
-  type: Joi.string().required(),
-  status: Joi.string().required(),
+  // type: Joi.string().required(),
+  // status: Joi.string().required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
 });
 
 const signUpUser = async (req, res) => {
-  const { email, password } = req.body;
+  console.log(req.body);
+  const { name, email, password } = req.body;
   try {
-    const validate = await schema.validateAsync(req.body);
+    // const validate = await schema.validateAsync(req.body);
 
     const check_user_exist = await findOne("user", { email });
     if (check_user_exist) {
@@ -27,7 +28,8 @@ const signUpUser = async (req, res) => {
     }
 
     const new_user = {
-      ...req.body,
+      name,
+      email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
     };
     const user = await insertNewDocument("user", new_user);
@@ -36,7 +38,7 @@ const signUpUser = async (req, res) => {
     send_email(
       "registration-email",
       {
-        username: user.first_name,
+        name: user.name,
         location: "test",
       },
       "Health Titan Pro",

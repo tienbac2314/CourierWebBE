@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logout Confirmation</title>
+</head>
+<body>
+    <h2>Are you sure you want to log out?</h2>
+    <button id="confirmLogout">Confirm Logout</button>
+    <a href="/">Cancel</a>
+
+    <script>
+        document.getElementById("confirmLogout").addEventListener("click", function() {
+            // When the user confirms logout, make an AJAX request to the server to perform the actual logout.
+            fetch('/auth/logout', {
+                method: 'GET',
+            }).then(response => {
+                if (response.status === 200) {
+                    console.log("Log out successfully");
+                    window.location.href = '/login';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

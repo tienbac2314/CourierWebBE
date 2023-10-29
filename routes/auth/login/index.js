@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { SECRET } = require("../../../config");
-const { getPopulatedData } = require("../../../helpers");
+const { findOneAndSelect } = require("../../../helpers");
 const Joi = require("joi");
 
 const schema = Joi.object({
@@ -13,19 +13,17 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const validate = await schema.validateAsync(req.body);
-    const populatedUser = await getPopulatedData(
+    const user = await findOneAndSelect(
       "user",
       { email },
-      "type",
-      "type status"
+      "name email password"
     );
-    const user = populatedUser[0];
     if (user) {
       const passwordIsValid = bcrypt.compareSync(password, user.password);
       if (!passwordIsValid) {
         return res
           .status(404)
-          .send({ status: 400, message: "Invalid Email or Password!" });
+          .send({ status: 404, message: "Invalid Email or Password!" });
       }
       user.password = undefined;
       var token = jwt.sign({ id: user._id }, SECRET);
