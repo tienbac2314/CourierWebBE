@@ -23,4 +23,4 @@ const packageStatusSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = userSchema;
+module.exports = packageStatusSchema;

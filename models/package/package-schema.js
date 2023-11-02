@@ -16,10 +16,10 @@ const packageSchema = new mongoose.Schema(
         ref: "users",
     },
     sendDate: {
-      type: schemaType.TypeDate,
+      type: schemaType.TypeString,
     },
     receiveDate: {
-        type: schemaType.TypeDate,
+        type: schemaType.TypeString,
     },
     status: { 
         type: mongoose.Schema.Types.ObjectId,
@@ -40,4 +40,4 @@ const packageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = userSchema;
+module.exports = packageSchema;
