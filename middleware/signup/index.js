@@ -1,22 +1,19 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { SECRET } = require("../../../config");
-const { insertNewDocument, findOne } = require("../../../helpers");
+const { SECRET } = require("../../config");
+const { insertNewDocument, findOne } = require("../../helpers");
 const Joi = require("joi");
-const { send_email } = require("../../../lib");
+const { send_email } = require("../../lib");
 const schema = Joi.object({
-  // first_name: Joi.string().required(),
-  // last_name: Joi.string().required(),
   name: Joi.string().required(),
   email: Joi.string().email().required(),
-  // type: Joi.string().required(),
-  // status: Joi.string().required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
+  phone: Joi.string().required(),
 });
 
 const signUpUser = async (req, res) => {
   console.log(req.body);
-  const { name, email, password } = req.body;
+  const { name, email, password, phone } = req.body;
   try {
     // const validate = await schema.validateAsync(req.body);
 
@@ -31,6 +28,7 @@ const signUpUser = async (req, res) => {
       name,
       email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
+      phone,
     };
     const user = await insertNewDocument("user", new_user);
     let token = jwt.sign({ id: new_user._id }, SECRET);

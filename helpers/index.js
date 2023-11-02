@@ -1,7 +1,7 @@
 const Models = require("../models");
 const fs = require("fs");
 const { storage } = require("../lib");
-
+const mongoose = require("mongoose");
 const find = async (modelDb, queryObj) =>
   await Models[modelDb].find(queryObj).exec();
 
@@ -11,8 +11,16 @@ const findOneAndSelect = async (modelDb, queryObj, selectQuery) =>
   await Models[modelDb].findOne(queryObj).select(selectQuery).exec();
 
 const insertNewDocument = async (modelDb, storeObj) => {
-  let data = new Models[modelDb](storeObj);
-  return await data.save();
+  // let data = new Models[modelDb](storeObj);
+  // return await data.save();
+  try {
+    const Model = mongoose.model(modelDb); // Get the Mongoose model by name
+    const newDocument = new Model(storeObj);
+    return await newDocument.save();
+  } catch (error) {
+    // Handle any potential errors here
+    throw error;
+  }
 };
 
 const updateDocument = async (modelDb, updateQuery, setQuery) =>

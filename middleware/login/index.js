@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { SECRET } = require("../../../config");
-const { findOneAndSelect } = require("../../../helpers");
+const { SECRET } = require("../../config");
+const { findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
 
 const schema = Joi.object({
