@@ -28,30 +28,14 @@ const packageSchema = new mongoose.Schema(
     weight: {
         type: schemaType.TypeDecimal
     },
-    send_location: {
+    send_exchange: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "exchange",
     },
-    receive_location: {
+    receive__exchange: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "exchange",
-    }
-
-    // type: {
-    //   type: schemaType.ObjectID,
-    //   ref: "user-types",
-    // },
-    // job_id: {
-    //   type: schemaType.TypeString,
-    // },
-    // created_date: {
-    //   type: schemaType.TypeDate,
-    //   default: Date.now,
-    // },
-    // locations: {
-    //   type: [schemaType.TypeObjectId],
-    //   ref: "location",
-    // },
+    },
   },
   { timestamps: true }
 );
