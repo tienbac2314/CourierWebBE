@@ -10,9 +10,14 @@ router.get("/login", (req, res) => {
 router.get("/register", (req, res) => {
     res.sendFile("register.html", { root: './public/' })
 });
+
+// Check user on every path
+router.get('*', User.checkUser);
+
 // ROUTES * /api/auth/
 router.post("/login", User.loginUser);
 router.post("/register", User.signUpUser);
+router.get("/logout", User.logoutUser);
 router.post("/delete_user_by_id", User.deleteUserById);
 router.post("/update_user_by_id", User.updateUserById);
 

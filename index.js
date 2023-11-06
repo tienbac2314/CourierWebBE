@@ -1,10 +1,14 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 const mongoose = require("./config/db");
 const morgan = require("morgan");
 const cors = require("cors");
 const routes = require("./routes");
 const app = express();
+
+// * CookieParser
+app.use(cookieParser());
 
 // * Database connection
 var db = mongoose.connection;

@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Exchange = require("../../models/exchange/index");
+const { user } = require("../../models");
 
 const addNewExchange = async (req, res) => {
   try {

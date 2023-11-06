@@ -14,11 +14,11 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: schemaType.TypeString,
-      requried: true,
+      required: true,
     },
     phone: {
       type: schemaType.TypeString,
-      required: true,  
+      // required: true,
     },
     role: {
       type: schemaType.TypeString,
