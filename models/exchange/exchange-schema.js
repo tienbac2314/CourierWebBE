@@ -38,4 +38,4 @@ const exchangeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = userSchema;
+module.exports = exchangeSchema;
