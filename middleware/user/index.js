@@ -122,16 +122,17 @@ const checkUser = (req, res, next) => {
   if (token) {
     jwt.verify(token, SECRET, async (err, decodedToken) => {
       if (err) {
-        res.locals.user = null;
+        res.locals.currentUser = null;
         next();
       } else {
-        let user = await user.findById(decodedToken.id);
-        res.locals.user = user;
+        let currentUser = await user.findById(decodedToken.id.id);
+        let currentRole = currentUser.role;
+        res.cookie('role', currentRole, { httpOnly: true, maxAge: maxAge * 1000 });
         next();
       }
     });
   } else {
-    res.locals.user = null;
+    res.locals.currentRole = null;
     next();
   }
 };

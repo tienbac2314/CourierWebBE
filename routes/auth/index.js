@@ -13,6 +13,7 @@ router.get("/register", (req, res) => {
 
 // Check user on every path
 router.get('*', User.checkUser);
+router.post('*', User.checkUser);
 
 // ROUTES * /api/auth/
 router.post("/login", User.loginUser);

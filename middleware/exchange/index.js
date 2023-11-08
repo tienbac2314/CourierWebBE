@@ -4,8 +4,12 @@ const { user } = require("../../models");
 
 const addNewExchange = async (req, res) => {
   try {
+    if ((req.cookies.role == null) || (req.cookies.role != 'manager_exchange')){
+      res.status(400).send({ status: 400});
+    } else {
     const newExchange = await Exchange.insertMany(req.body);
     return res.status(200).send({ status: 200, newExchange });
+  }
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
@@ -13,8 +17,10 @@ const addNewExchange = async (req, res) => {
 
 const updateExchangeById = async (req, res) => {
   try {
+    if ((req.cookies.role == null) || (req.cookies.role != 'manager_exchange')){
+      res.status(400).send({ status: 400});
+    } else {
     const { _id, ...updatedData } = req.body;
-
     const updatedExchange = await Exchange.findByIdAndUpdate(_id, updatedData, { new: true });
 
     if (!updatedExchange) {
@@ -22,6 +28,7 @@ const updateExchangeById = async (req, res) => {
     }
 
     return res.status(200).send({ status: 200, exchange: updatedExchange });
+  }
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
@@ -29,6 +36,9 @@ const updateExchangeById = async (req, res) => {
 
 const deleteExchangeById = async (req, res) => {
   try {
+    if ((req.cookies.role == null) || (req.cookies.role != 'manager_exchange')){
+      res.status(400).send({ status: 400});
+    } else {
     const filter = { _id: req.body._id };
     const deleteExchange = await Exchange.deleteOne(filter);
 
@@ -37,6 +47,7 @@ const deleteExchangeById = async (req, res) => {
     }
 
     return res.status(200).send({ status: 200, exchange: deleteExchange });
+  }
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
