@@ -95,6 +95,7 @@ const loginUser = async (req, res) => {
 
 const logoutUser = async (req,res) => {
   res.cookie('jwt', '', { maxAge: 1 });
+  res.cookie('role', '', { maxAge: 1 });
   res.redirect('/');
 }
 
@@ -114,6 +115,37 @@ const requireAuth = (req, res, next) => {
   } else {
     res.redirect('/login');
   }
+};
+
+const roles = {
+  ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange'],
+  manager_gather: [ 'manager_exchange', 'employee_gather'],
+  manager_exchange: ['employee_exchange'],
+  employee_gather: [],
+  employee_exchange: []
+};
+
+const userRoleAuth = (requiredRole) => {
+  return async (req, res, next) => {
+    const userRole = req.cookies.role;
+
+    const hasPermission = (userRole, requestedRole) => {
+      if (userRole === requestedRole.toLowerCase()) return true;
+
+      const lowerRoles = roles[requestedRole.toLowerCase()];
+      if (!lowerRoles || !Array.isArray(lowerRoles)) return false;
+
+      if (lowerRoles.includes(userRole)) return false;
+
+      return true;
+    };
+
+    if (hasPermission(userRole.toLowerCase(), requiredRole)) {
+      next();
+    } else {
+      return res.status(403).send(`${userRole} does not have permissions for ${requiredRole}`);
+    }
+  };
 };
 
 // check current user
@@ -137,7 +169,6 @@ const checkUser = (req, res, next) => {
   }
 };
 
-module.exports = { requireAuth, checkUser };
 const updateUserById = async (req,res) => {
     try {
         const { _id, ...updatedData } = req.body;
@@ -172,6 +203,7 @@ module.exports = {
     loginUser,
     logoutUser,
     requireAuth,
+    userRoleAuth,
     checkUser,
     updateUserById,
     deleteUserById,
