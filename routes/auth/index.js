@@ -19,8 +19,8 @@ router.post('*', User.checkUser);
 router.post("/login", User.loginUser);
 router.post("/register", User.signUpUser);
 router.get("/logout", User.logoutUser);
-router.post("/delete_user_by_id", User.deleteUserById);
-router.post("/update_user_by_id", /* User.userRoleAuth("...") , ?*/ User.updateUserById);
+router.post("/delete_user_by_id", User.userRoleAuth("manager_exchange"), User.deleteUserById);
+router.post("/update_user_by_id", User.userRoleAuth("manager_exchange"), User.updateUserById);
 
 //package
 router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addNewPackage);
@@ -29,7 +29,7 @@ router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Pac
 router.get("/get_package_by_id", Package.getPackageById);
 
 //exchange ( diem giao dich)
-router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
+router.post("/add_exchange", User.userRoleAuth("manager_exchange"), Exchange.addNewExchange);
 router.post("/update_exchange_by_id", User.userRoleAuth("ceo"), Exchange.updateExchangeById);
 router.post("/delete_exchange_by_id", User.userRoleAuth("ceo"), Exchange.deleteExchangeById);
 router.get("/get_exchange_by_id", Exchange.getExchangeById);

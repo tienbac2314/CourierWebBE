@@ -118,29 +118,30 @@ const requireAuth = (req, res, next) => {
 };
 
 const roles = {
-  ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange'],
-  manager_gather: [ 'manager_exchange', 'employee_gather'],
-  manager_exchange: ['employee_exchange'],
-  employee_gather: [],
-  employee_exchange: []
+  ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange', 'customer'],
+  manager_gather: ['manager_exchange', 'employee_gather', 'customer'],
+  manager_exchange: ['employee_exchange', 'customer'],
+  employee_gather: ['customer'],
+  employee_exchange: ['customer'],
+  customer:[]
+};
+
+const hasPermission = (userRole, requestedRole, equals) => {
+  if ((equals === 0) && (userRole === requestedRole.toLowerCase())) return false;
+
+  const lowerRoles = roles[requestedRole.toLowerCase()];
+  if (!lowerRoles || !Array.isArray(lowerRoles)) return false;
+
+  if (lowerRoles.includes(userRole)) return false;
+
+  return true;
 };
 
 const userRoleAuth = (requiredRole) => {
   return async (req, res, next) => {
     const userRole = req.cookies.role;
 
-    const hasPermission = (userRole, requestedRole) => {
-      if (userRole === requestedRole.toLowerCase()) return true;
-
-      const lowerRoles = roles[requestedRole.toLowerCase()];
-      if (!lowerRoles || !Array.isArray(lowerRoles)) return false;
-
-      if (lowerRoles.includes(userRole)) return false;
-
-      return true;
-    };
-
-    if (hasPermission(userRole.toLowerCase(), requiredRole)) {
+    if (hasPermission(userRole.toLowerCase(), requiredRole, 1)) {
       next();
     } else {
       return res.status(403).send(`${userRole} does not have permissions for ${requiredRole}`);
@@ -172,13 +173,21 @@ const checkUser = (req, res, next) => {
 const updateUserById = async (req,res) => {
     try {
         const { _id, ...updatedData } = req.body;
-    
-        const updatedUser = await user.findByIdAndUpdate(_id, updatedData, { new: true });
-    
-        if (!updatedUser) {
+        const currentUserRole = req.cookies.role;
+        const targetedUser = await user.findById(_id);
+
+        if (hasPermission(currentUserRole, targetedUser.role, 0)){
+          const updatedUser = await user.findByIdAndUpdate(_id, updatedData, { new: true });
+
+          if (!updatedUser) {
           return res.status(404).send({ status: 404, message: 'User not found' });
+          }
+
+          return res.status(200).send({ status: 200, user: updatedUser });
+
+        } else {
+          return res.status(403).send(`${currentUserRole} does not have permissions for ${targetedUser.role}`);
         }
-        return res.status(200).send({ status: 200, user: updatedUser });
       } catch (e) {
         res.status(400).send({ status: 400, message: e.message });
       }
@@ -186,6 +195,7 @@ const updateUserById = async (req,res) => {
 
 const deleteUserById = async (req,res) => {
     try {
+      if (hasPermission(targetedUser.role, currentUserRole , 0)){
         const filter = { _id: req.body._id };
         const deleteUser = await user.deleteOne(filter);
     
@@ -194,6 +204,7 @@ const deleteUserById = async (req,res) => {
         }
         
         return res.status(200).send({ status: 200, user: deleteUser });
+      }
       } catch (e) {
         res.status(400).send({ status: 400, message: e.message });
     }
