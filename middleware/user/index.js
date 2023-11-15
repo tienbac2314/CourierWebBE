@@ -41,16 +41,7 @@ const signUpUser = async (req, res) => {
     const user = await insertNewDocument("user", new_user);
     let token = createToken({id: new_user._id})
     user.password = undefined;
-    send_email(
-      "registration-email",
-      {
-        name: user.name,
-        location: "test",
-      },
-      "Health Titan Pro",
-      "Awaiting Admin Approval",
-      user.email
-    );
+    
     res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     res.status(200).send({ status: 200, user, token });
   } catch (e) {
