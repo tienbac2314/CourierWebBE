@@ -5,10 +5,10 @@ const Package = require("../../middleware/package");
 const Exchange = require("../../middleware/exchange");
 const Gathering = require("../../middleware/gathering");
 router.get("/login", (req, res) => {
-    res.sendFile("login.html", { root: './public/' })
+    res.sendFile("login.html", { root: './public/shared' })
 });
 router.get("/register", (req, res) => {
-    res.sendFile("register.html", { root: './public/' })
+    res.sendFile("register.html", { root: './public/shared' })
 });
 
 // Check user on every path
@@ -28,7 +28,7 @@ router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Pac
 router.get("/get_package_by_id", Package.getPackageById);
 
 //exchange ( diem giao dich)
-router.post("/add_exchange", User.userRoleAuth("manager_exchange"), Exchange.addNewExchange);
+router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
 router.post("/update_exchange_by_id", User.userRoleAuth("ceo"), Exchange.updateExchangeById);
 router.post("/delete_exchange_by_id", User.userRoleAuth("ceo"), Exchange.deleteExchangeById);
 router.get("/get_exchange_by_id", Exchange.getExchangeById);
