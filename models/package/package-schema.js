@@ -22,17 +22,25 @@ const packageSchema = new mongoose.Schema(
         type: schemaType.TypeString,
     },
     status: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "status",
+        type: schemaType.TypeString,
+        default: "exchange1", // exchange1-gather1, gather1-gather2, gather2-exchange2, received, no-received
     },
     weight: {
         type: schemaType.TypeDecimal
     },
-    send_exchange: {
+    exchange1: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "exchange",
     },
-    receive__exchange: {
+    gathering1: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "gathering",
+    },
+    gathering2: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "gathering",
+    },
+    exchange2: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "exchange",
     },
