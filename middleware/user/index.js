@@ -73,7 +73,7 @@ const loginUser = async (req, res) => {
         user.password = undefined;
         let token = createToken({ id: user._id});
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).send({ status: 200, user, token });
+        res.status(200).redirect('/api/auth/home');
       } else {
         return res
           .status(404)
