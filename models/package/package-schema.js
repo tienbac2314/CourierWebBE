@@ -23,7 +23,7 @@ const packageSchema = new mongoose.Schema(
     },
     status: { 
         type: schemaType.TypeString,
-        default: "exchange1", // exchange1-gather1, gather1-gather2, gather2-exchange2, received, no-received
+        default: "shipping", // shipping, success, no-received
     },
     weight: {
         type: schemaType.TypeDecimal
@@ -43,6 +43,22 @@ const packageSchema = new mongoose.Schema(
     exchange2: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "exchange",
+    },
+    qrcode: {
+        type: mongoose.Schema.Types.String,
+    },
+    nextStep: {
+        type: schemaType.TypeString, //gather1, gather2, exchange2
+        default:"gather1",
+    },
+    gather1Date: {
+        type: schemaType.TypeDate
+    },
+    gather2Date: {
+      type: schemaType.TypeDate
+    },
+    exchange2Date: {
+    type: schemaType.TypeDate
     },
   },
   { timestamps: true }

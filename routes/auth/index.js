@@ -35,7 +35,7 @@ router.get("/get_package_by_id", Package.getPackageById);
 router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
 router.post("/update_exchange_by_id", User.userRoleAuth("ceo"), Exchange.updateExchangeById);
 router.post("/delete_exchange_by_id", User.userRoleAuth("ceo"), Exchange.deleteExchangeById);
-router.get("/get_exchange_by_id", Exchange.getExchangeById);
+router.get("/get_exchange_by_id/:_id", Exchange.getExchangeById);
 
 //gathering ( diem tap ket)
 router.post("/add_gathering", User.userRoleAuth("ceo"), Gathering.addNewGathering);
