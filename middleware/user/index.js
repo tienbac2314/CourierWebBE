@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const { SECRET } = require("../../config");
 const { insertNewDocument, findOne, findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
-const { send_email } = require("../../lib");
 const user = require("../../models/user/index")
 
 const schema = Joi.object({
