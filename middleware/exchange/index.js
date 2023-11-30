@@ -48,7 +48,8 @@ const deleteExchangeById = async (req, res) => {
 
 const getExchangeById = async (req, res) => {
   try {
-    const searchedExchange = await Exchange.findById(req.body._id);
+    const searchedExchange = await Exchange.findById(req.params._id);
+    console.log(req.params._id);
 
     if (!searchedExchange) {
       return res.status(404).send({ status: 404, message: 'Exchange not found' });

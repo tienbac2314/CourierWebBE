@@ -24,6 +24,14 @@ const userSchema = new mongoose.Schema(
       type: schemaType.TypeString,
       default: "customer", //employee_exchange,employee_gather,CEO,manager_exchange,manager_gather,customer
     },
+    gathering: {
+      type: schemaType.ObjectID,
+      ref:"gathering"
+    },
+    exchange: {
+      type: schemaType.ObjectID,
+      ref:"exchange"
+    }
   },
   { timestamps: true }
 );

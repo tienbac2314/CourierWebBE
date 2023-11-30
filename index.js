@@ -28,7 +28,7 @@ app.use(morgan("short"));
 // * Api routes
 app.use("/api", routes);
 
-app.get("/", (req, res) => {
+app.get("/hello", (req, res) => {
   console.log("hello");
   res.send("hello");
 });
@@ -37,6 +37,6 @@ app.use("*", (req, res) => {
   res.send("Route not found");
 });
 
-let PORT = process.env.PORT || 3000;
+let PORT = process.env.PORT;
 
 app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
