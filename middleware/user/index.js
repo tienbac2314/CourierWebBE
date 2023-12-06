@@ -72,7 +72,7 @@ const loginUser = async (req, res) => {
         user.password = undefined;
         let token = createToken({ id: user._id});
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).redirect('/api/auth/home');
+        res.status(200).send( {status: 200, message: user.name });
       } else {
         return res
           .status(404)
@@ -84,6 +84,7 @@ const loginUser = async (req, res) => {
 };
 
 const logoutUser = async (req,res) => {
+  res.status(200).send("log out successfully");
   res.cookie('jwt', '', { maxAge: 1 });
   res.cookie('role', '', { maxAge: 1 });
   res.redirect('/');
@@ -117,6 +118,7 @@ const roles = {
 };
 
 const hasPermission = (userRole, requestedRole, equals) => {
+  if (userRole == null) return false;
   if ((equals === 0) && (userRole === requestedRole.toLowerCase())) return false;
 
   const lowerRoles = roles[requestedRole.toLowerCase()];
@@ -130,7 +132,9 @@ const hasPermission = (userRole, requestedRole, equals) => {
 const userRoleAuth = (requiredRole) => {
   return async (req, res, next) => {
     const userRole = req.cookies.role;
-
+    if (userRole == null) {
+      return res.status(403).send('does not have permissions ');
+    }
     if (hasPermission(userRole.toLowerCase(), requiredRole, 1)) {
       next();
     } else {

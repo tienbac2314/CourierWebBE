@@ -29,7 +29,6 @@ app.use(morgan("short"));
 app.use("/api", routes);
 
 app.get("/hello", (req, res) => {
-  console.log("hello");
   res.send("hello");
 });
 
