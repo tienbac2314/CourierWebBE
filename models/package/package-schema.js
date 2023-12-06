@@ -8,18 +8,24 @@ const packageSchema = new mongoose.Schema(
       required: true,
     },
     sender: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.String,
         ref: "users", 
     },
+    senderPhone: {
+      type: mongoose.Schema.Types.String,
+    },
     receiver: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.String,
         ref: "users",
     },
+    receiverPhone: {
+      type: mongoose.Schema.Types.String,
+    },
     sendDate: {
-      type: schemaType.TypeString,
+      type: schemaType.TypeDate,
     },
     receiveDate: {
-        type: schemaType.TypeString,
+        type: schemaType.TypeDate,
     },
     status: { 
         type: schemaType.TypeString,

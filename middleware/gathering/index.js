@@ -56,9 +56,24 @@ const getGatheringById = async (req, res) => {
   }
 };
 
+const getAllGathering = async (req, res) => {
+  try {
+    const listGathering = await Gathering.find();
+
+    if (!listGathering) {
+      return res.status(404).send({ status: 404, message: 'Gathering not found' });
+    }
+
+    return res.status(200).send({ status: 200, gathering:listGathering });
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message });
+  }
+};
+
 module.exports = {
   addNewGathering,
   updateGatheringById,
   deleteGatheringById,
   getGatheringById,
+  getAllGathering,
 };
