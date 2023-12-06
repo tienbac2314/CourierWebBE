@@ -45,7 +45,7 @@ const deletePackageById =async (req,res) => {
 const getPackageById = async (req,res) =>{
   try {
     // const filter = { _id: req.body._id };
-    const searchedPackage = await package.findById(req.body._id);
+    const searchedPackage = await package.findById(req.params._id);
 
     if (!searchedPackage) {
       return res.status(404).send({ status: 404, message: 'Package not found' });

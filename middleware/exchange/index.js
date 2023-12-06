@@ -49,7 +49,6 @@ const deleteExchangeById = async (req, res) => {
 const getExchangeById = async (req, res) => {
   try {
     const searchedExchange = await Exchange.findById(req.params._id);
-    console.log(req.params._id);
 
     if (!searchedExchange) {
       return res.status(404).send({ status: 404, message: 'Exchange not found' });
@@ -61,9 +60,22 @@ const getExchangeById = async (req, res) => {
   }
 };
 
+const getExchangeByGather = async (req, res) => {
+  try {
+    const searchedExchange = await Exchange.find({gathering: req.params._id});
+    if (!searchedExchange || searchedExchange.length == 0) {
+      return res.status(404).send({ status: 404, message: 'Exchange not found' });
+    }
+
+    return res.status(200).send({ status: 200, exchange: searchedExchange });
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message });
+  }
+};
 module.exports = {
   addNewExchange,
   updateExchangeById,
   deleteExchangeById,
   getExchangeById,
+  getExchangeByGather,
 };
