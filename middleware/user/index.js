@@ -72,6 +72,8 @@ const loginUser = async (req, res) => {
         user.password = undefined;
         let token = createToken({ id: user._id});
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+        const role = await checkRole(token);
+        res.cookie('role', role, { httpOnly: true, maxAge: maxAge * 1000 });
         res.status(200).send( {status: 200, message: user.name });
       } else {
         return res
@@ -83,11 +85,27 @@ const loginUser = async (req, res) => {
     }
 };
 
+// Testing
+const checkRole = async (token) => {
+  if (token) {
+    try {
+      const decodedToken = jwt.verify(token, SECRET);
+      const currentUser = await user.findById(decodedToken.id.id);
+      const role = currentUser.role
+      return role;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+
 const logoutUser = async (req,res) => {
   res.status(200).send("log out successfully");
   res.cookie('jwt', '', { maxAge: 1 });
   res.cookie('role', '', { maxAge: 1 });
-  res.redirect('/');
 }
 
 // protect routes that need higher role/user logged in
