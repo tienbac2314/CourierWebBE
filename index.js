@@ -17,8 +17,12 @@ db.once("open", function () {
   console.log("db connected!");
 });
 
+const corsOptions = {
+  origin: 'http://localhost:3000', // Replace with your frontend's URL
+  credentials: true // Allow credentials (cookies)
+};
 // * Cors
-app.use(cors());
+app.use(cors(corsOptions));
 
 // * Body Parser
 app.use(bodyParser.json());
