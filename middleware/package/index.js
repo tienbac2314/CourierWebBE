@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const package = require("../../models/package/index")
-
+const Exchange = require("../../models/exchange/index");
+const Gathering = require("../../models/gathering/index");
+const user = require("../../models/user/index");
 
 const addNewPackage = async (req, res) => {
   try {
@@ -56,6 +58,36 @@ const getPackageById = async (req,res) =>{
     res.status(400).send({ status: 400, message: e.message });
   }
 }
+
+/*
+const managePackage = async (req, res) => {
+  try {
+    let filter = {};
+
+  switch (req.cookies.role) {
+    case 'manager_gather':
+      filter = { gathering: req.cookies.workplace, role: { $ne: req.cookies.role }};
+      break;
+    case 'manager_exchange':
+      filter = { exchange: req.cookies.workplace, role: { $ne: req.cookies.role }};
+      break;
+  }
+
+  const listEmployee = await user.find(filter);
+
+    const simplifiedList = listEmployee.map(employee => ({
+      name: employee.name,
+      role: employee.role,
+      // variables
+    }));
+
+    return res.status(200).send({ status: 200, employee: simplifiedList });
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message});
+  }
+};
+*/
+
 module.exports = {
     addNewPackage,
     updatePackageById,

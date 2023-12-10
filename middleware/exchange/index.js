@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Exchange = require("../../models/exchange/index");
-const { user } = require("../../models");
+const Gathering = require("../../models/gathering/index");
+const user = require("../../models/user/index");
 
 const addNewExchange = async (req, res) => {
   try {
@@ -62,16 +63,26 @@ const getExchangeById = async (req, res) => {
 
 const getExchangeByGather = async (req, res) => {
   try {
-    const searchedExchange = await Exchange.find({gathering: req.params._id});
-    if (!searchedExchange || searchedExchange.length == 0) {
-      return res.status(404).send({ status: 404, message: 'Exchange not found' });
+    const currentGathering = await Gathering.findById(req.params._id);
+
+    if (!currentGathering) {
+      return res.status(404).send({ status: 404, message: req.params._id });
     }
 
-    return res.status(200).send({ status: 200, exchange: searchedExchange });
+    const listGathering = await Exchange.find({ gathering: currentGathering._id });
+
+    const simplifiedList = listGathering.map(exchange => ({
+      name: exchange.name,
+      zipcode: exchange.zipcode,
+      // variables
+    }));
+
+    return res.status(200).send({ status: 200, gathering: simplifiedList });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
 };
+
 module.exports = {
   addNewExchange,
   updateExchangeById,

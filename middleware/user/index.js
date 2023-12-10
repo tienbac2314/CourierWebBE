@@ -3,7 +3,9 @@ const bcrypt = require("bcryptjs");
 const { SECRET } = require("../../config");
 const { insertNewDocument, findOne, findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
-const user = require("../../models/user/index")
+const Exchange = require("../../models/exchange/index");
+const Gathering = require("../../models/gathering/index");
+const user = require("../../models/user/index");
 
 const schema = Joi.object({
   name: Joi.string().required(),
@@ -60,7 +62,7 @@ const loginUser = async (req, res) => {
       const user = await findOneAndSelect(
         "user",
         { email },
-        "name email password"
+        "name email password role exchange gathering"
       );
       if (user) {
         const passwordIsValid = bcrypt.compareSync(password, user.password);
@@ -70,49 +72,41 @@ const loginUser = async (req, res) => {
             .send({ status: 404, message: "Invalid Email or Password!" });
         }
         user.password = undefined;
+
         let token = createToken({ id: user._id});
+
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        const role = await checkRole(token);
-        res.cookie('role', role, { httpOnly: true, maxAge: maxAge * 1000 });
+        res.cookie('role', user.role, { httpOnly: true, maxAge: maxAge * 1000 });
+        res.cookie('workplace', (user.exchange || user.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
         res.status(200).send( {status: 200, message: user.name });
       } else {
         return res
           .status(404)
           .send({ status: 404, message: "User does not exist!" });
       }
-    } catch (e) {
+    } catch (err) {
+      const e = handleErrors(err);
       res.status(400).send({ status: 400, message: e.message });
     }
 };
 
-// Testing
-const checkRole = async (token) => {
-  if (token) {
-    try {
-      const decodedToken = jwt.verify(token, SECRET);
-      const currentUser = await user.findById(decodedToken.id.id);
-      const role = currentUser.role
-      return role;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  } else {
-    return null;
+const logoutUser = async (req, res) => {
+  try {
+    res.cookie('jwt', '', { maxAge: 1 });
+    res.cookie('role', '', { maxAge: 1 });
+    res.cookie('workplace', '', { maxAge: 1 });
+    res.status(200).send("log out successfully");
+  } catch (err) {
+    const e = handleErrors(err);
+    res.status(404).send({ status: 404, message: e.message });
   }
 };
-
-const logoutUser = async (req,res) => {
-  res.status(200).send("log out successfully");
-  res.cookie('jwt', '', { maxAge: 1 });
-  res.cookie('role', '', { maxAge: 1 });
-}
 
 // protect routes that need higher role/user logged in
 const requireAuth = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
-    jwt.verify(token, 'net ninja secret', (err, decodedToken) => {
+    jwt.verify(token, SECRET, (err, decodedToken) => {
       if (err) {
         console.log(err.message);
         res.redirect('/login');
@@ -135,25 +129,29 @@ const roles = {
   customer:[]
 };
 
-const hasPermission = (userRole, requestedRole, equals) => {
-  if (userRole == null) return false;
-  if ((equals === 0) && (userRole === requestedRole.toLowerCase())) return false;
+const hasPermission = (userRole, requestedRole, above = 0) => {
+  if (userRole === null) return false;
+  if (userRole === requestedRole.toLowerCase()) return true;
 
+  if (above === 1) {
   const lowerRoles = roles[requestedRole.toLowerCase()];
   if (!lowerRoles || !Array.isArray(lowerRoles)) return false;
 
   if (lowerRoles.includes(userRole)) return false;
 
   return true;
+  } else {
+    return false;
+  }
 };
 
-const userRoleAuth = (requiredRole) => {
+const userRoleAuth = (requiredRole, above = 0) => {
   return async (req, res, next) => {
     const userRole = req.cookies.role;
     if (userRole == null) {
       return res.status(403).send('does not have permissions ');
     }
-    if (hasPermission(userRole.toLowerCase(), requiredRole, 1)) {
+    if (hasPermission(userRole.toLowerCase(), requiredRole, above)) {
       next();
     } else {
       return res.status(403).send(`${userRole} does not have permissions for ${requiredRole}`);
@@ -167,7 +165,7 @@ const checkUser = (req, res, next) => {
   if (token) {
     jwt.verify(token, SECRET, async (err, decodedToken) => {
       if (err) {
-        res.locals.currentUser = null;
+        res.cookie('role', '', {maxAge: maxAge * 1});
         next();
       } else {
         let currentUser = await user.findById(decodedToken.id.id);
@@ -177,7 +175,7 @@ const checkUser = (req, res, next) => {
       }
     });
   } else {
-    res.locals.currentRole = null;
+    res.cookie('role', '', {maxAge: maxAge * 1});
     next();
   }
 };
@@ -221,6 +219,40 @@ const deleteUserById = async (req,res) => {
         res.status(400).send({ status: 400, message: e.message });
     }
 };
+
+const manageEmployee = async (req, res) => {
+  try {
+    let filter = {};
+
+  switch (req.cookies.role) {
+    case 'ceo':
+      filter = {role : manager_gather};
+    case 'manager_gather':
+      filter = { gathering: req.cookies.workplace, role: 'employee_gather'};
+      break;
+    case 'manager_exchange':
+      filter = { exchange: req.cookies.workplace, role: 'employee_exchange'};
+      break;
+  }
+
+  const listEmployee = await user.find(filter);
+
+    const simplifiedList = listEmployee.map(employee => ({
+      id: employee._id,
+      email: employee.email,
+      name: employee.name,
+      role: employee.role,
+      dob: employee.dob,
+      gender: employee.gender,
+      // variables
+    }));
+
+    return res.status(200).send({ status: 200, employee: simplifiedList });
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message});
+  }
+};
+
 module.exports = {
     signUpUser,
     loginUser,
@@ -230,4 +262,5 @@ module.exports = {
     checkUser,
     updateUserById,
     deleteUserById,
+    manageEmployee,
 };
