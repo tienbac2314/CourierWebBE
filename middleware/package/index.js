@@ -52,7 +52,6 @@ const getPackageById = async (req,res) =>{
     if (!searchedPackage) {
       return res.status(404).send({ status: 404, message: 'Package not found' });
     }
-
     return res.status(200).send({ status: 200, package: searchedPackage });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
