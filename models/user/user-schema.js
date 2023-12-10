@@ -12,6 +12,14 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    dob: {
+      type: schemaType.TypeDate,
+      //required: true,
+    },
+    gender: {
+      type: schemaType.TypeString,
+      //required: true,
+    },
     password: {
       type: schemaType.TypeString,
       required: true,
@@ -25,11 +33,11 @@ const userSchema = new mongoose.Schema(
       default: "customer", //employee_exchange,employee_gather,CEO,manager_exchange,manager_gather,customer
     },
     gathering: {
-      type: schemaType.ObjectID,
+      type: mongoose.Schema.Types.ObjectId,
       ref:"gathering"
     },
     exchange: {
-      type: schemaType.ObjectID,
+      type: mongoose.Schema.Types.ObjectId,
       ref:"exchange"
     }
   },

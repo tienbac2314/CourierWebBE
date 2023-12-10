@@ -44,7 +44,7 @@ const deleteGatheringById = async (req, res) => {
 
 const getGatheringById = async (req, res) => {
   try {
-    const searchedGathering = await Gathering.findById(req.body._id);
+    const searchedGathering = await Gathering.findById(req.param._id);
 
     if (!searchedGathering) {
       return res.status(404).send({ status: 404, message: 'Gathering not found' });
@@ -63,8 +63,13 @@ const getAllGathering = async (req, res) => {
     if (!listGathering) {
       return res.status(404).send({ status: 404, message: 'Gathering not found' });
     }
+    const simplifiedList = listGathering.map(gathering => ({
+      name: gathering.name,
+      zipcode: gathering.zipcode,
+      // other variables
+    }));
 
-    return res.status(200).send({ status: 200, gathering:listGathering });
+    return res.status(200).send({ status: 200, gathering: simplifiedList });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
