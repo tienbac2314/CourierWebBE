@@ -6,7 +6,7 @@ const Joi = require("joi");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const user = require("../../models/user/index");
-
+const moment = require('moment')
 const schema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
@@ -242,7 +242,7 @@ const manageEmployee = async (req, res) => {
       email: employee.email,
       name: employee.name,
       role: employee.role,
-      dob: employee.dob,
+      dob: moment(employee.dob).format('DD-MM-YYYY'),
       gender: employee.gender,
       // variables
     }));
