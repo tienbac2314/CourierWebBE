@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Gathering = require("../../models/gathering/index");
-
+const { getManagerGather }= require ("../user");
+const moment = require('moment')
 const addNewGathering = async (req, res) => {
   try {
     const newGathering = await Gathering.insertMany(req.body);
@@ -56,24 +57,72 @@ const getGatheringById = async (req, res) => {
   }
 };
 
+// const getAllGathering = async (req, res) => {
+//   try {
+//     const listGathering = await Gathering.find();
+    
+//     if (!listGathering) {
+//       return res.status(404).send({ status: 404, message: 'Gathering not found' });
+//     }
+//     listGathering.forEach(async member => {
+//       const res= await getManagerGather(member._id)
+//       if(res == null){
+//         member.managerName = "Unknown"
+//       } else{
+//         member.managerName = res.name;
+//       }
+//       console.log(member.managerName);
+//     })
+//     const simplifiedList = listGathering.map(gathering => ({
+//       id: gathering._id,
+//       name: gathering.name,
+//       location: gathering.street +", "+gathering.district+", "+ gathering.city,
+//       created_date: moment(gathering.created_date).format('DD-MM-YYYY'),
+//       managerName: gathering.managerName,
+//       // other variables
+//     }));
+
+//     return res.status(200).send({ status: 200, gathering: simplifiedList });
+//   } catch (e) {
+//     res.status(400).send({ status: 400, message: e.message });
+//   }
+// };
+
 const getAllGathering = async (req, res) => {
   try {
     const listGathering = await Gathering.find();
 
-    if (!listGathering) {
+    if (!listGathering || listGathering.length === 0) {
       return res.status(404).send({ status: 404, message: 'Gathering not found' });
     }
-    const simplifiedList = listGathering.map(gathering => ({
+
+    const promises = listGathering.map(async member => {
+      const res = await getManagerGather(member._id);
+      if (res == null) {
+        member.managerName = "Unknown";
+      } else {
+        member.managerName = res.name;
+      }
+      return member;
+    });
+
+    const updatedListGathering = await Promise.all(promises);
+
+    const simplifiedList = updatedListGathering.map(gathering => ({
+      id: gathering._id,
       name: gathering.name,
-      zipcode: gathering.zipcode,
+      location: `${gathering.street}, ${gathering.district}, ${gathering.city}`,
+      created_date: moment(gathering.created_date).format('DD-MM-YYYY'),
+      managerName: gathering.managerName,
       // other variables
     }));
 
     return res.status(200).send({ status: 200, gathering: simplifiedList });
-  } catch (e) {
-    res.status(400).send({ status: 400, message: e.message });
+  } catch (error) {
+    return res.status(500).send({ status: 500, message: error });
   }
 };
+
 
 module.exports = {
   addNewGathering,

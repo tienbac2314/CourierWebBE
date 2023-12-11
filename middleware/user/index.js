@@ -6,7 +6,8 @@ const Joi = require("joi");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const user = require("../../models/user/index");
-const moment = require('moment')
+const moment = require('moment');
+const { ObjectID } = require("../../types");
 const schema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
@@ -253,6 +254,16 @@ const manageEmployee = async (req, res) => {
   }
 };
 
+const getManagerGather = async (id) => {
+  const response = user.findOne({
+    gathering: new ObjectID(id),
+    role:"manager_gather",
+  })
+  if(response) {
+    return response;
+  }
+  return "Unknown";
+}
 module.exports = {
     signUpUser,
     loginUser,
@@ -263,4 +274,5 @@ module.exports = {
     updateUserById,
     deleteUserById,
     manageEmployee,
+    getManagerGather,
 };
