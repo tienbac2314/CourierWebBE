@@ -37,6 +37,7 @@ router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addN
 router.post("/update_package_by_id", User.userRoleAuth("employee_exchange"), Package.updatePackageById);
 router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
+router.get('/packages/:pointId', User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.listPackagesByPoint);
 
 
 //exchange ( diem giao dich)

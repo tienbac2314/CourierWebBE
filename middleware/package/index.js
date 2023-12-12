@@ -58,38 +58,102 @@ const getPackageById = async (req,res) =>{
   }
 }
 
-/*
-const managePackage = async (req, res) => {
+const listPackagesByPoint = async (req, res) => {
   try {
-    let filter = {};
+    const pointId = req.params.pointId;
 
-  switch (req.cookies.role) {
-    case 'manager_gather':
-      filter = { gathering: req.cookies.workplace, role: { $ne: req.cookies.role }};
-      break;
-    case 'manager_exchange':
-      filter = { exchange: req.cookies.workplace, role: { $ne: req.cookies.role }};
-      break;
-  }
+    /* auth
+    if (req.cookies.workplace !== pointId) {
+      return res.status(405).send({ status: 405, message: 'Method not allowed' });
+    }
+    */
 
-  const listEmployee = await user.find(filter);
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $or: [
+        { exchange1: pointId},
+        { gathering1: pointId},
+        { gathering2: pointId},
+        { exchange2: pointId}
+      ]
+    });
 
-    const simplifiedList = listEmployee.map(employee => ({
-      name: employee.name,
-      role: employee.role,
-      // variables
-    }));
+    if (!listPackages.length) {
+      return res.status(404).send({ status: 404, message: 'Packages not found' });
+    }
 
-    return res.status(200).send({ status: 200, employee: simplifiedList });
+    let successCount = 0;
+    let shippingCount = 0;
+    let noReceiveCount = 0;
+
+    const simplifiedList = listPackages.map((packages) => {
+      const simplifiedPackage = {
+        name: packages.name,
+        status: packages.status,
+        //variables
+      };
+
+      // tìm điểm hiện tại
+      const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
+      let currentLocation = '';
+
+      for (const field of locationFields) {
+        if (packages[field]?._id.toString() === pointId.toString()) {
+          currentLocation = field;
+          break;
+        }
+      }
+
+      // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo tất cả điểm đã qua hiện success
+      if (packages.status === 'shipping') {
+        if (packages.nextStep === 'exchange2' && packages.gathering2._id === pointId) {
+          simplifiedPackage.status = 'success';
+        } else if (packages.nextStep !== ('gathering1') && packages.gathering1._id === pointId) {
+          simplifiedPackage.status = 'success';
+        } else if (packages.exchange1._id == pointId) {
+          simplifiedPackage.status = 'success';
+        } else {
+          simplifiedPackage.status = 'shipping';
+        }
+      } else if ((currentLocation !== packages.nextStep) && (locationFields.indexOf(packages.nextStep) <= locationFields.indexOf(currentLocation))) {
+        simplifiedPackage.status = 'shipping';
+      } else {
+        simplifiedPackage.status = packages.status;
+      }
+
+      // đếm lượng hàng cùng các status
+      switch (simplifiedPackage.status) {
+        case 'success':
+          successCount++;
+          break;
+        case 'shipping':
+          shippingCount++;
+          break;
+        case 'no-receive':
+          noReceiveCount++;
+          break;
+      }
+      
+      return simplifiedPackage;
+    });
+
+    const summary = {
+      successCount,
+      shippingCount,
+      noReceiveCount,
+    };
+
+    return res.status(200).send({ status: 200, packages: simplifiedList, summary });
   } catch (e) {
-    res.status(400).send({ status: 400, message: e.message});
+    return res.status(400).send({ status: 400, message: e.message });
   }
 };
-*/
+
 
 module.exports = {
     addNewPackage,
     updatePackageById,
     deletePackageById,
     getPackageById,
+    listPackagesByPoint,
 };

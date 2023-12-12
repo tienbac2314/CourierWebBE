@@ -167,16 +167,19 @@ const checkUser = (req, res, next) => {
     jwt.verify(token, SECRET, async (err, decodedToken) => {
       if (err) {
         res.cookie('role', '', {maxAge: maxAge * 1});
+        res.cookie('workplace', '', {maxAge: maxAge * 1});
         next();
       } else {
         let currentUser = await user.findById(decodedToken.id.id);
         let currentRole = currentUser.role;
         res.cookie('role', currentRole, { httpOnly: true, maxAge: maxAge * 1000 });
+        res.cookie('workplace', (currentUser.exchange || currentUser.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
         next();
       }
     });
   } else {
     res.cookie('role', '', {maxAge: maxAge * 1});
+    res.cookie('workplace', '', {maxAge: maxAge * 1});
     next();
   }
 };
@@ -227,7 +230,7 @@ const manageEmployee = async (req, res) => {
 
   switch (req.cookies.role) {
     case 'ceo':
-      filter = {role : manager_gather};
+      filter = {$or: [{ role : 'manager_gather' }, { role : 'manager_exchange' }]};
     case 'manager_gather':
       filter = { gathering: req.cookies.workplace, role: 'employee_gather'};
       break;
