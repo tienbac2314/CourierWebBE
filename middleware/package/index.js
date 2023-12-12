@@ -90,16 +90,15 @@ const listPackagesByPoint = async (req, res) => {
       const simplifiedPackage = {
         name: packages.name,
         status: packages.status,
-        //variables
+        currentLocation: '',
       };
 
       // tìm điểm hiện tại
       const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
-      let currentLocation = '';
 
       for (const field of locationFields) {
         if (packages[field]?._id.toString() === pointId.toString()) {
-          currentLocation = field;
+          simplifiedPackage.currentLocation = field;
           break;
         }
       }
@@ -115,7 +114,7 @@ const listPackagesByPoint = async (req, res) => {
         } else {
           simplifiedPackage.status = 'shipping';
         }
-      } else if ((currentLocation !== packages.nextStep) && (locationFields.indexOf(packages.nextStep) <= locationFields.indexOf(currentLocation))) {
+      } else if ((packages.currentLocation !== packages.nextStep) && (locationFields.indexOf(packages.nextStep) <= locationFields.indexOf(packages.currentLocation))) {
         simplifiedPackage.status = 'shipping';
       } else {
         simplifiedPackage.status = packages.status;
@@ -143,7 +142,7 @@ const listPackagesByPoint = async (req, res) => {
       noReceiveCount,
     };
 
-    return res.status(200).send({ status: 200, packages: simplifiedList, summary });
+    return res.status(200).send({ status: 200, packages: simplifiedList, summary});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
