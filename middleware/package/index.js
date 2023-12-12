@@ -185,7 +185,7 @@ const listPackagesByPoint = async (req, res) => {
       const simplifiedPackage = {
         name: packages.name,
         status: packages.status,
-        currentLocation: '',
+        location: '',
       };
 
       // tìm điểm hiện tại
@@ -193,7 +193,7 @@ const listPackagesByPoint = async (req, res) => {
 
       for (const field of locationFields) {
         if (packages[field]?._id.toString() === pointId.toString()) {
-          simplifiedPackage.currentLocation = field;
+          simplifiedPackage.location = field;
           break;
         }
       }
@@ -205,7 +205,7 @@ const listPackagesByPoint = async (req, res) => {
         } else {
           simplifiedPackage.status = 'success';
         }
-      } else if ((packages.currentLocation !== packages.nextStep) && (locationFields.indexOf(packages.nextStep) <= locationFields.indexOf(packages.currentLocation))) {
+      } else if ((packages.location !== packages.nextStep) && (locationFields.indexOf(packages.nextStep) <= locationFields.indexOf(packages.location))) {
         simplifiedPackage.status = 'shipping';
       } else {
         simplifiedPackage.status = packages.status;
@@ -236,8 +236,11 @@ const listPackagesByPoint = async (req, res) => {
       noReceiveCount,
       receivedCount,
     };
-
-    return res.status(200).send({ status: 200, packages: simplifiedList, summary});
+    const pieData = Object.entries(summary).map(([name, quantity]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalizing the first letter of the property name
+      quantity,
+    }));
+    return res.status(200).send({ status: 200, packages: simplifiedList, pieData});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
