@@ -79,7 +79,7 @@ const loginUser = async (req, res) => {
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('role', user.role, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('workplace', (user.exchange || user.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).send( {status: 200, message: user.name });
+        res.status(200).send( {status: 200, message: user.name, role: user.role });
       } else {
         return res
           .status(404)
