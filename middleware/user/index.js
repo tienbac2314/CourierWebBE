@@ -23,7 +23,7 @@ const createToken = (id) => {
 
 const signUpUser = async (req, res) => {
   console.log(req.body);
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, dob, gender } = req.body;
   try {
     // const validate = await schema.validateAsync(req.body);
 
@@ -39,6 +39,8 @@ const signUpUser = async (req, res) => {
       email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
       phone,
+      dob,
+      gender,
     };
     const user = await insertNewDocument("user", new_user);
     let token = createToken({id: new_user._id})
@@ -86,8 +88,8 @@ const loginUser = async (req, res) => {
           .send({ status: 404, message: "User does not exist!" });
       }
     } catch (err) {
-      const e = handleErrors(err);
-      res.status(400).send({ status: 400, message: e.message });
+      // const e = handleErrors(err);
+      res.status(400).send({ status: 400, message: err });
     }
 };
 
