@@ -124,12 +124,12 @@ const requireAuth = (req, res, next) => {
 };
 
 const roles = {
-  ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange', 'customer'],
+  ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange', 'customer', 'ceo'],
   manager_gather: ['manager_exchange', 'employee_gather', 'customer'],
   manager_exchange: ['employee_exchange', 'customer'],
   employee_gather: ['customer'],
   employee_exchange: ['customer'],
-  customer:[]
+  customer:[],
 };
 
 const hasPermission = (userRole, requestedRole, above = 0) => {
@@ -151,6 +151,11 @@ const hasPermission = (userRole, requestedRole, above = 0) => {
 const userRoleAuth = (requiredRole, above = 0) => {
   return async (req, res, next) => {
     const userRole = req.cookies.role;
+
+    if (!roles['ceo'].includes(userRole)){
+      return res.status(403).send('role unidentified');
+    }
+
     if (userRole == null) {
       return res.status(403).send('does not have permissions ');
     }
@@ -228,11 +233,11 @@ const deleteUserById = async (req,res) => {
 
 const manageEmployee = async (req, res) => {
   try {
-    let filter = {};
-
+  let filter = undefined;
   switch (req.cookies.role) {
     case 'ceo':
-      filter = {$or: [{ role : 'manager_gather' }, { role : 'manager_exchange' }]};
+      filter = { $or: [{ role: 'manager_gather' }, { role: 'manager_exchange' }] };
+      break;
     case 'manager_gather':
       filter = { gathering: req.cookies.workplace, role: 'employee_gather'};
       break;
