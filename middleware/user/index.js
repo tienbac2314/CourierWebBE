@@ -127,8 +127,9 @@ const roles = {
   ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange', 'customer', 'ceo'],
   manager_gather: ['manager_exchange', 'employee_gather', 'customer'],
   manager_exchange: ['employee_exchange', 'customer'],
-  employee_gather: ['employee_exchange'],
-  employee_exchange: [],
+  employee_gather: ['customer'],
+  employee_exchange: ['customer'],
+  customer:[],
 };
 
 const hasPermission = (userRole, requestedRole, above = 0) => {
