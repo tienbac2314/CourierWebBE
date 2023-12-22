@@ -268,7 +268,7 @@ const listPackagesByPoint = async (req, res) => {
 };
 
 //chỉ liệt kê hàng đi từ điểm ngay trước, đến từ điểm ngay sau
-const listInorOutPackagesByPoint = async (req, res) => { // đã đi và đã đến
+const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đến
   try {
     const pointId = req.params.pointId;
 
@@ -373,6 +373,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
 
     const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
+
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -407,16 +408,12 @@ const listOutgoingQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
-
-      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
-        nextStep: packages.nextStep,
-        queued: 0,
-        weight: weight,
+        nextstep: packages.nextStep,
       };
 
       for (const field of locationFields) {
@@ -447,8 +444,9 @@ const listOutgoingQueuedPackages = async (req, res) => {
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointtId;
+    const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
+
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -483,15 +481,11 @@ const listIncomingQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
-
-      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
-        id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
-        queued: 0,
       };
 
       for (const field of locationFields) {
