@@ -211,8 +211,6 @@ const listPackagesByPoint = async (req, res) => {
       };
 
       // tìm điểm hiện tại
-      const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
-
       for (const field of locationFields) {
         if (packages[field]?._id.toString() === pointId.toString()) {
           simplifiedPackage.location = field;
@@ -269,17 +267,22 @@ const listPackagesByPoint = async (req, res) => {
   }
 };
 
+//chỉ liệt kê hàng đi từ điểm ngay trước, đến từ điểm ngay sau
 const listInorOutPackagesByPoint = async (req, res) => {
   try {
     const pointId = req.params.pointId;
+
     /*
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
     }
     */
+
     const { startDate, endDate } = req.query;
     const inorout = req.params.inorout;
-    const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
+
+    let incomingCount = 0;
+    let outgoingCount = 0;
 
     // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
     const timeFilter = (startDate || endDate) ? {
@@ -314,6 +317,7 @@ const listInorOutPackagesByPoint = async (req, res) => {
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
+        invalid: 1,
       };
 
       for (const field of locationFields) {
@@ -325,44 +329,60 @@ const listInorOutPackagesByPoint = async (req, res) => {
 
       // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo tất cả điểm đã qua hiện success
       if (packages.status === 'shipping') {
-        if (locationFields.indexOf(packages.nextStep) > locationFields.indexOf(packages.currentLocation)) {
+        if (locationFields.indexOf(packages.nextStep) > locationFields.indexOf(packages.location)) {
           simplifiedPackage.status = 'shipping';
         } else {
           simplifiedPackage.status = 'success';
         }
-      } else if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(packages.currentLocation)) {
+      } else if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(packages.location)) {
         simplifiedPackage.status = 'shipping';
       } else {
         simplifiedPackage.status = packages.status;
       }
 
+      switch (inorout) {
+        case 'outgoing':
+          if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
+            if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
+              outgoingCount++;
+              simplifiedPackage.invalid = undefined;
+            }
+          }
+          if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
+            if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
+              incomingCount++;
+            }
+          }
+          break;
+        case 'incoming':
+          if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
+            if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
+              outgoingCount++;
+            }
+          }
+          if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
+            if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
+              incomingCount++;
+              simplifiedPackage.invalid = undefined;
+            }
+          }
+          break;
+        default:
+          break;
+      }
       
       return simplifiedPackage;
     });
+    
+    const filteredList = simplifiedList.filter((packages) => {
+      return packages.invalid === undefined;
+    })
 
-    const simplifiedincomingList = simplifiedList.filter((simplifiedPackage) => {
-      const conditionResult = locationFields.indexOf(simplifiedPackage.nextStep) < locationFields.indexOf(simplifiedPackage.currentLocation);
-      console.log(`Condition Result for incoming: ${conditionResult}`);
-      return conditionResult;
-    });
-    
-    const simplifiedoutgoingList = simplifiedList.filter((simplifiedPackage) => {
-      const conditionResult = locationFields.indexOf(simplifiedPackage.nextStep) === locationFields.indexOf(simplifiedPackage.currentLocation);
-      console.log(`Condition Result for outgoing: ${conditionResult}`);
-      return conditionResult;
-    });
-    
-    if (inorout === 'outgoing') {
-      return res.status(200).send({ status: 200, packages: simplifiedoutgoingList });
-    } else if (inorout === 'incoming') {
-      return res.status(200).send({ status: 200, packages: simplifiedincomingList });
-    }
-    
+    return res.status(200).send({ status: 200, packages: filteredList, incomingCount, outgoingCount});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
 };
-
 
 const listQueuedPackages = async (req, res) => {
   try {
@@ -405,11 +425,7 @@ const listQueuedPackages = async (req, res) => {
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
-        queued: 0,
       };
-
-      // tìm điểm hiện tại
-      const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
 
       for (const field of locationFields) {
         if (packages[field]?._id.toString() === pointId.toString()) {
@@ -418,15 +434,15 @@ const listQueuedPackages = async (req, res) => {
         }
       }
 
-      if ((packages.status === 'success') && (locationFields.indexOf(packages.nextStep) === locationFields.indexOf(simplifiedPackage.location))) {
-        simplifiedPackage.queued = 1;
+      if (!((packages.status === 'success') && (locationFields.indexOf(packages.nextStep) === locationFields.indexOf(simplifiedPackage.location)))) {
+        simplifiedPackage.queued = 0;
       }
 
       return simplifiedPackage;
     });
 
     const filteredList = simplifiedList.filter((packages) => {
-      return packages.queued === 1;
+      return packages.queued === undefined;
     });
 
     return res.status(200).send({ status: 200, packages: filteredList});
