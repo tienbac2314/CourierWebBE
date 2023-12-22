@@ -39,7 +39,7 @@ router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Pac
 router.get("/get_package_by_id/:_id", Package.getPackageById);
 router.get('/packages/:pointId', User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.listPackagesByPoint);
 router.get('/packages/queued/:pointtId', User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.listQueuedPackages);
-
+router.get('/packages/:inorout/:pointId', User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.listInorOutPackagesByPoint);
 
 //exchange ( diem giao dich)
 router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
