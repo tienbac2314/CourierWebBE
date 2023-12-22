@@ -29,7 +29,7 @@ const packageSchema = new mongoose.Schema(
     },
     status: { 
         type: schemaType.TypeString,
-        default: "shipping", // shipping, success, no-received
+        default: "shipping", // shipping, success, received, no-received
     },
     weight: {
         type: schemaType.TypeDecimal
@@ -54,7 +54,7 @@ const packageSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.String,
     },
     nextStep: {
-        type: schemaType.TypeString, //gather1, gather2, exchange2
+        type: schemaType.TypeString, //gather1, gather2, exchange2, customer
         default:"gather1",
     },
     gather1Date: {
