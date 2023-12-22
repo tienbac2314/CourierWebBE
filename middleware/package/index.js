@@ -414,7 +414,9 @@ const listOutgoingQueuedPackages = async (req, res) => {
         name: packages.name,
         status: packages.status,
         location: '',
-        nextstep: packages.nextStep,
+        nextStep: packages.nextStep,
+        queued: 0,
+        weight: weight,
       };
 
       for (const field of locationFields) {
