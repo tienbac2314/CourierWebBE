@@ -387,7 +387,7 @@ const listInorOutPackagesByPoint = async (req, res) => {
 const listQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointtId;
+    const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
 
     /* auth
