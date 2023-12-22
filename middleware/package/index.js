@@ -168,7 +168,8 @@ const listPackagesByPoint = async (req, res) => {
   }
 };
 
-const listInorOutPackagesByPoint = async (req, res) => {
+//chỉ liệt kê hàng đi từ điểm ngay trước, đến từ điểm ngay sau
+const listInorOutPackagesByPoint = async (req, res) => { // đã đi và đã đến
   try {
     const pointId = req.params.pointId;
     /*
@@ -266,9 +267,8 @@ const listInorOutPackagesByPoint = async (req, res) => {
 const listQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointtId;
+    const pointId = req.cookies.workplace; // change to by workplace of user
     const { startDate, endDate } = req.query;
-
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -299,12 +299,16 @@ const listQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
+        id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
-        nextstep: packages.nextStep,
+        nextStep: packages.nextStep,
         queued: 0,
+        weight: weight,
       };
 
       // tìm điểm hiện tại
