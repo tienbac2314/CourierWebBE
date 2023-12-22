@@ -373,7 +373,6 @@ const listOutgoingQueuedPackages = async (req, res) => {
 
     const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
-
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -408,6 +407,8 @@ const listOutgoingQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
