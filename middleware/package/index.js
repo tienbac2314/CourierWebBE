@@ -279,7 +279,6 @@ const listInorOutPackagesByPoint = async (req, res) => {
     */
 
     const { startDate, endDate } = req.query;
-    const inorout = req.params.inorout;
 
     let incomingCount = 0;
     let outgoingCount = 0;
@@ -317,7 +316,6 @@ const listInorOutPackagesByPoint = async (req, res) => {
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
-        invalid: 1,
       };
 
       for (const field of locationFields) {
@@ -340,51 +338,37 @@ const listInorOutPackagesByPoint = async (req, res) => {
         simplifiedPackage.status = packages.status;
       }
 
-      switch (inorout) {
-        case 'outgoing':
-          if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
+      if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
             if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
               outgoingCount++;
-              simplifiedPackage.invalid = undefined;
+              simplifiedPackage.out = 1;
             }
           }
-          if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
+      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
             if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
               incomingCount++;
+              simplifiedPackage.in = 1;
             }
           }
-          break;
-        case 'incoming':
-          if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
-            if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
-              outgoingCount++;
-            }
-          }
-          if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
-            if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
-              incomingCount++;
-              simplifiedPackage.invalid = undefined;
-            }
-          }
-          break;
-        default:
-          break;
-      }
       
       return simplifiedPackage;
     });
     
-    const filteredList = simplifiedList.filter((packages) => {
-      return packages.invalid === undefined;
+    const outgoingList = simplifiedList.filter((packages) => {
+      return packages.out === 1;
     })
 
-    return res.status(200).send({ status: 200, packages: filteredList, incomingCount, outgoingCount});
+    const incomingList = simplifiedList.filter((packages) => {
+      return packages.in === 1;
+    })
+
+    return res.status(200).send({ status: 200, outgoing_packages: outgoingList, incoming_packages: incomingList, outgoingCount, incomingCount});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
 };
 
-const listQueuedPackages = async (req, res) => {
+const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
     const pointId = req.params.pointId;
@@ -406,14 +390,18 @@ const listQueuedPackages = async (req, res) => {
 
     // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
     const listPackages = await package.find({
+      $and: [
+        {
           $or: [
             { exchange1: pointId },
             { gathering1: pointId },
             { gathering2: pointId },
             { exchange2: pointId }
           ]
-        }   
-    );
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
 
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
@@ -445,7 +433,79 @@ const listQueuedPackages = async (req, res) => {
       return packages.queued === undefined;
     });
 
-    return res.status(200).send({ status: 200, packages: filteredList});
+    return res.status(200).send({ status: 200, OutgoingQueuedPackages: filteredList});
+  } catch (e) {
+    return res.status(400).send({ status: 400, message: e.message });
+  }
+    
+};
+
+const listIncomingQueuedPackages = async (req, res) => {
+  try {
+
+    const pointId = req.params.pointId;
+    const { startDate, endDate } = req.query;
+
+    /* auth
+    if (req.cookies.workplace !== pointId) {
+      return res.status(405).send({ status: 405, message: 'Method not allowed' });
+    }
+    */
+
+    // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
+    const timeFilter = (startDate || endDate) ? {
+    sendDate: {
+      ...(startDate ? { $gte: new Date(startDate) } : {}),
+      ...(endDate ? { $lte: new Date(endDate) } : {}),
+      }
+    } : {};
+
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $and: [
+        {
+          $or: [
+            { exchange1: pointId },
+            { gathering1: pointId },
+            { gathering2: pointId },
+            { exchange2: pointId }
+          ]
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
+
+    if (!listPackages.length) {
+      return res.status(404).send({ status: 404, message: 'Packages not found' });
+    }
+
+    const simplifiedList = listPackages.map((packages) => {
+      const simplifiedPackage = {
+        name: packages.name,
+        status: packages.status,
+        location: '',
+        nextstep: packages.nextStep,
+      };
+
+      for (const field of locationFields) {
+        if (packages[field]?._id.toString() === pointId.toString()) {
+          simplifiedPackage.location = field;
+          break;
+        }
+      }
+
+      if (!((packages.status === 'shipping') && (locationFields.indexOf(packages.nextStep) === locationFields.indexOf(simplifiedPackage.location)))) {
+        simplifiedPackage.queued = 0;
+      }
+
+      return simplifiedPackage;
+    });
+
+    const filteredList = simplifiedList.filter((packages) => {
+      return packages.queued === undefined;
+    });
+
+    return res.status(200).send({ status: 200, IncomingQueuedPackages: filteredList});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
@@ -460,6 +520,7 @@ module.exports = {
     listAllPackages,
     listPackagesByPoint,
     listInorOutPackagesByPoint,
-    listQueuedPackages,
+    listOutgoingQueuedPackages,
+    listIncomingQueuedPackages,
 };
 
