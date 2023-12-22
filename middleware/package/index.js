@@ -482,11 +482,15 @@ const listIncomingQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
+        id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
+        queued: 0,
       };
 
       for (const field of locationFields) {
