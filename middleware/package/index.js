@@ -168,7 +168,7 @@ const listPackagesByPoint = async (req, res) => {
 };
 
 //chỉ liệt kê hàng đi từ điểm ngay trước, đến từ điểm ngay sau
-const listInorOutPackagesByPoint = async (req, res) => {
+const listInorOutPackagesByPoint = async (req, res) => { // đã đi và đã đến
   try {
     const pointId = req.params.pointId;
 
@@ -271,9 +271,8 @@ const listInorOutPackagesByPoint = async (req, res) => {
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointId;
+    const pointId = req.params.pointtId;
     const { startDate, endDate } = req.query;
-
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -308,11 +307,15 @@ const listOutgoingQueuedPackages = async (req, res) => {
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         name: packages.name,
         status: packages.status,
         location: '',
-        nextstep: packages.nextStep,
+        nextStep: packages.nextStep,
+        queued: 0,
+        weight: weight,
       };
 
       for (const field of locationFields) {
@@ -322,7 +325,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
         }
       }
 
-      if (!((packages.status === 'success') && (locationFields.indexOf(packages.nextStep) === locationFields.indexOf(simplifiedPackage.location)))) {
+      if (!((packages.status === 'shipping') && (locationFields.indexOf(packages.nextStep) === locationFields.indexOf(simplifiedPackage.location)))) {
         simplifiedPackage.queued = 0;
       }
 
@@ -333,7 +336,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
       return packages.queued === undefined;
     });
 
-    return res.status(200).send({ status: 200, OutgoingQueuedPackages: filteredList});
+    return res.status(200).send({ status: 200, IncomingQueuedPackages: filteredList});
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
@@ -409,9 +412,7 @@ const listIncomingQueuedPackages = async (req, res) => {
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
-    
-};
-
+}
 module.exports = {
     addNewPackage,
     updatePackageById,
