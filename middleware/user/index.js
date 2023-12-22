@@ -127,22 +127,22 @@ const roles = {
   ceo: ['manager_gather', 'manager_exchange', 'employee_gather', 'employee_exchange', 'customer', 'ceo'],
   manager_gather: ['manager_exchange', 'employee_gather', 'customer'],
   manager_exchange: ['employee_exchange', 'customer'],
-  employee_gather: ['customer'],
-  employee_exchange: ['customer'],
-  customer:[],
+  employee_gather: ['employee_exchange'],
+  employee_exchange: [],
 };
 
 const hasPermission = (userRole, requestedRole, above = 0) => {
   if (userRole === null) return false;
   if (userRole === requestedRole.toLowerCase()) return true;
-
-  if (above === 1) {
+  
   const lowerRoles = roles[requestedRole.toLowerCase()];
   if (!lowerRoles || !Array.isArray(lowerRoles)) return false;
 
-  if (lowerRoles.includes(userRole)) return false;
-
-  return true;
+  if (above === -1){
+    if (lowerRoles.includes(userRole)) return true;
+  } else if (above === 1) {
+    if (lowerRoles.includes(userRole)) return false;
+    return true;
   } else {
     return false;
   }
