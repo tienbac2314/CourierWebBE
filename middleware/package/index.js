@@ -225,26 +225,13 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
         }
       }
 
-      // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo tất cả điểm đã qua hiện success
-      if (packages.status === 'shipping') {
-        if (locationFields.indexOf(packages.nextStep) > locationFields.indexOf(packages.location)) {
-          simplifiedPackage.status = 'shipping';
-        } else {
-          simplifiedPackage.status = 'success';
-        }
-      } else if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(packages.location)) {
-        simplifiedPackage.status = 'shipping';
-      } else {
-        simplifiedPackage.status = packages.status;
-      }
-
-      if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
+      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1) && (packages.status === 'shipping')){
             if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
               outgoingCount++;
               simplifiedPackage.out = 1;
             }
           }
-      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
+      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0) && (packages.status !== 'shipping')){
             if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
               incomingCount++;
               simplifiedPackage.in = 1;
