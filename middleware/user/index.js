@@ -274,6 +274,17 @@ const getManagerGather = async (id) => {
   }
   return "Unknown";
 }
+
+const getManagerExchange = async (id) => {
+  const response = user.findOne({
+    exchange: new ObjectID(id),
+    role:"manager_exchange",
+  })
+  if(response) {
+    return response;
+  }
+  return "Unknown";
+}
 module.exports = {
     signUpUser,
     loginUser,
@@ -285,4 +296,5 @@ module.exports = {
     deleteUserById,
     manageEmployee,
     getManagerGather,
+    getManagerExchange,
 };
