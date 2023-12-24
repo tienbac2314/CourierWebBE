@@ -312,7 +312,8 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointId;
+    const pointId = req.cookies.workplace;
+    const { startDate, endDate } = req.query;
 
     /* auth
     if (req.cookies.workplace !== pointId) {
@@ -327,6 +328,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
 
     const simplifiedList = listPackages.map((packages) => {
       const simplifiedPackage = {
+        id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
@@ -361,7 +363,9 @@ const listOutgoingQueuedPackages = async (req, res) => {
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointId;
+    const pointId = req.cookies.workplace;
+    const { startDate, endDate } = req.query;
+
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -375,6 +379,7 @@ const listIncomingQueuedPackages = async (req, res) => {
 
     const simplifiedList = listPackages.map((packages) => {
       const simplifiedPackage = {
+        id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',

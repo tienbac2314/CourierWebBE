@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const user = require("../../models/user/index");
-
+const moment = require('moment')
+const { getManagerExchange }= require ("../user");
 const addNewExchange = async (req, res) => {
   try {
     const newExchange = await Exchange.insertMany(req.body);
@@ -71,9 +72,24 @@ const getExchangeByGather = async (req, res) => {
 
     const listGathering = await Exchange.find({ gathering: currentGathering._id });
 
-    const simplifiedList = listGathering.map(exchange => ({
+    const promises = listGathering.map(async member => {
+      const res = await getManagerExchange(member._id);
+      if (res == null) {
+        member.managerName = "Unknown";
+      } else {
+        member.managerName = res.name;
+      }
+      return member;
+    });
+
+    const updatedListGathering = await Promise.all(promises);
+
+    const simplifiedList = updatedListGathering.map(exchange => ({
+      id: exchange._id,
       name: exchange.name,
-      zipcode: exchange.zipcode,
+      location: `${exchange.street}, ${exchange.district}, ${exchange.city}`,
+      created_date: moment(exchange.created_date).format('DD-MM-YYYY'),
+      managerName: exchange.managerName,
       // variables
     }));
 
