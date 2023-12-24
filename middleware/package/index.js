@@ -76,20 +76,24 @@ const filterByTime = async (pointId, query, packageModel) => {
         }
       } : {};
 
-    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
-    const listPackages = await package.find({
-      $and: [
-        {
-          $or: [
-            { exchange1: pointId },
-            { gathering1: pointId },
-            { gathering2: pointId },
-            { exchange2: pointId },
-          ],
-        },
-        timeFilter,
-      ],
-    });
+    let listPackages;
+    if (pointId === 'all'){
+      listPackages = await package.find(timeFilter);
+    } else {
+      listPackages = await package.find({
+        $and: [
+          {
+            $or: [
+              { exchange1: pointId },
+              { gathering1: pointId },
+              { gathering2: pointId },
+              { exchange2: pointId },
+            ],
+          },
+          timeFilter,
+        ],
+      });
+  }
 
     return listPackages;
   } catch (error) {
@@ -109,6 +113,51 @@ const getPackageById = async (req,res) =>{
     res.status(400).send({ status: 400, message: e.message });
   }
 }
+
+const listAllPackages = async (req, res) => {
+  try {
+    const listPackages = await filterByTime('all', req.query, package);
+    if (!listPackages.length) {
+      return res.status(404).send({ status: 404, message: 'Packages not found' });
+    }
+    
+        let shippingCount = 0;
+        let successCount = 0;
+        let receiveCount = 0;
+        let noReceiveCount = 0;
+    
+        listPackages.forEach((packages) => {
+          switch (packages.status) {
+            case 'shipping':
+              shippingCount++;
+              break;
+            case 'success':
+              successCount++;
+              break;
+            case 'received':
+              receiveCount++;
+              break;
+            case 'no-receive':
+              noReceiveCount++;
+              break;
+            default:
+              break;
+          }
+        });
+        return res.status(200).send({
+          status: 200,
+          packages: listPackages, 
+          counts: {
+            shipping: shippingCount,
+            success: successCount,
+            received: receiveCount,
+            'no-receive': noReceiveCount,
+          },
+        });
+  } catch (error) {
+    return res.status(400).send({ status: 400, message: error.message });
+  }
+};
 
 const listPackagesByPoint = async (req, res) => {
   try {
@@ -362,6 +411,7 @@ module.exports = {
     updatePackageById,
     deletePackageById,
     getPackageById,
+    listAllPackages,
     listPackagesByPoint,
     listInorOutPackagesByPoint,
     listOutgoingQueuedPackages,

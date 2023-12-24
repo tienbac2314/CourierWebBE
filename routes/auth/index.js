@@ -34,9 +34,11 @@ router.get("/manageEmployee", User.userRoleAuth("manager_exchange", 1), User.man
 
 //package
 router.post("/add_package", User.userRoleAuth("employee_exchange", -1), Package.addNewPackage);
-router.post("/update_package_by_id", User.userRoleAuth("employee_exchange", -1), Package.updatePackageById);
-router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange", -1), Package.deletePackageById);
+router.post("/update_package_by_id", User.userRoleAuth("employee_gather", -1), Package.updatePackageById);
+router.post("/delete_package_by_id", User.userRoleAuth("employee_gather", -1), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
+
+router.get('/all_packages/', User.userRoleAuth("ceo"), Package.listAllPackages);
 router.get('/packages/:pointId', User.userRoleAuth("employee_gather", -1), Package.listPackagesByPoint);
 router.get('/packages/queued/incoming/:pointId', User.userRoleAuth("employee_gather", -1), Package.listIncomingQueuedPackages);
 router.get('/packages/queued/outgoing/:pointId', User.userRoleAuth("employee_gather", -1), Package.listOutgoingQueuedPackages);
