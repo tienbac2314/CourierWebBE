@@ -453,114 +453,45 @@ const getMonthlyPackageCounts = async (year, role, workplace) => {
       throw new Error('Invalid year format');
     }
 
-    const aggregationPipeline = [
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(`${year}-01-01`),
-            $lte: new Date(`${year}-12-31T23:59:59.999Z`),
-          },
+    const result = [];
+    for (let month = 1; month <= 12; month++) {
+      const startOfMonth = new Date(`${year}-${month.toString().padStart(2, '0')}-01`);
+      const lastDayOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+      const endOfMonth = new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999);
+
+      const timeFilter = {
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
         },
-      },
-    ];
+      };
 
-    // Kiểm tra nếu role là 'manager_gather' hoặc 'manager_exchange' thì thêm điều kiện workplace
-    if (role === 'manager_gather' || role === 'manager_exchange') {
-      const workplaceConditions = [
-        mongoose.Types.ObjectId(workplace), // Giá trị của workplace
-      ];
+      const listPackages = await package.find(timeFilter);
+      const packageSent = listPackages.length;
 
-      aggregationPipeline[0].$match.$or = [
-        { exchange1: { $in: workplaceConditions } },
-        { gathering1: { $in: workplaceConditions } },
-        { gathering2: { $in: workplaceConditions } },
-        { exchange2: { $in: workplaceConditions } },
-      ];
+      result.push({
+        id: month,
+        month: startOfMonth.toLocaleString('en-US', { month: 'long' }),
+        packageSent,
+      });
     }
 
-    aggregationPipeline.push(
-      {
-        $group: {
-          _id: { $month: '$createdAt' },
-          packageSent: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      }
-    );
-
-    const result = await package.aggregate(aggregationPipeline);
-
-    const allMonths = Array.from({ length: 12 }, (_, index) => index + 1); // Tạo mảng từ 1 đến 12
-
-    const monthlyPackageCounts = allMonths.map((month) => {
-      const matchingResult = result.find((item) => item._id === month);
-      return {
-        id: month,
-        month: new Date(`${year}-${month.toString().padStart(2, '0')}-01`).toLocaleString('en-US', { month: 'long' }),
-        packageSent: matchingResult ? matchingResult.packageSent : 0,
-      };
-    });
-
-    return monthlyPackageCounts;
+    return result;
   } catch (error) {
     throw error;
   }
 };
 
-
+// Sử dụng hàm trong endpoint của bạn
 const listPackagesByMonth = async (req, res) => {
   try {
     const year = req.params.year;
-    const role = req.cookies.role;
-    const workplace = req.cookies.workplace;
-
-    const monthlyPackageCounts = await getMonthlyPackageCounts(year, role, workplace);
+    const monthlyPackageCounts = await getMonthlyPackageCounts(year);
 
     return res.status(200).send({
       status: 200,
       data: monthlyPackageCounts,
     });
-  } catch (error) {
-    return res.status(400).send({ status: 400, message: error.message });
-  }
-};
-
-const listFiveRecentPackages = async (req, res) => {
-  try {
-    const role  = req.cookies.role;
-    let listPackages;
-
-    if (role === 'ceo') {
-      listPackages = await package.find().sort({ createdAt: -1 }).limit(5);
-    } else if (role === 'manager_gather' || role === 'manager_exchange') {
-      const pointId = req.cookies.workplace;
-      listPackages = await filterByTime(pointId, req.query, package);
-    } else {
-      return res.status(403).send({ status: 403, message: 'Permission denied' });
-    }
-
-    if (!listPackages.length) {
-      return res.status(404).send({ status: 404, message: 'Packages not found' });
-    }
-
-    const simplifiedList = listPackages.map((packages) => {
-      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
-      const simplifiedPackage = {
-        id: packages._id,
-        name: packages.name,
-        sendDate: format(packages.createdAt, 'dd-MM-yyyy'),
-        weight: weight,
-        status: packages.status,
-      };
-
-      return simplifiedPackage;
-    });
-
-    simplifiedList.sort((a, b) => new Date(a.sendDate) - new Date(b.sendDate));
-
-    return res.status(200).send({ status: 200, packages: simplifiedList.slice(0, 5) });
   } catch (error) {
     return res.status(400).send({ status: 400, message: error.message });
   }
@@ -577,6 +508,5 @@ module.exports = {
     listOutgoingQueuedPackages,
     listIncomingQueuedPackages,
     listPackagesByMonth,
-    listFiveRecentPackages,
 };
 
