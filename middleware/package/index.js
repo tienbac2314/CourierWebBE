@@ -411,6 +411,57 @@ const listIncomingQueuedPackages = async (req, res) => {
     
 };
 
+const getMonthlyPackageCounts = async (year) => {
+  try {
+    const isValidYearFormat = /^\d{4}$/;
+    if (!isValidYearFormat.test(year)) {
+      throw new Error('Invalid year format');
+    }
+
+    const result = [];
+    for (let month = 1; month <= 12; month++) {
+      const startOfMonth = new Date(`${year}-${month.toString().padStart(2, '0')}-01`);
+      const lastDayOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
+      const endOfMonth = new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999);
+
+      const timeFilter = {
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      };
+
+      const listPackages = await package.find(timeFilter);
+      const packageSent = listPackages.length;
+
+      result.push({
+        id: month,
+        month: startOfMonth.toLocaleString('en-US', { month: 'long' }),
+        packageSent,
+      });
+    }
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Sử dụng hàm trong endpoint của bạn
+const listPackagesByMonth = async (req, res) => {
+  try {
+    const year = req.params.year;
+    const monthlyPackageCounts = await getMonthlyPackageCounts(year);
+
+    return res.status(200).send({
+      status: 200,
+      data: monthlyPackageCounts,
+    });
+  } catch (error) {
+    return res.status(400).send({ status: 400, message: error.message });
+  }
+};
+
 module.exports = {
     addNewPackage,
     updatePackageById,
@@ -421,5 +472,6 @@ module.exports = {
     listInorOutPackagesByPoint,
     listOutgoingQueuedPackages,
     listIncomingQueuedPackages,
+    listPackagesByMonth,
 };
 
