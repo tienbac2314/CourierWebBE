@@ -163,6 +163,7 @@ const listPackagesByPoint = async (req, res) => {
   try {
 
     const pointId = req.params.pointId;
+    const { startDate, endDate } = req.query;
 
     /* auth
     if (req.cookies.workplace !== pointId) {
@@ -171,7 +172,28 @@ const listPackagesByPoint = async (req, res) => {
     */
 
     // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
-    const listPackages = await filterByTime(pointId, req.query, package);
+    const timeFilter = (startDate || endDate) ? {
+    sendDate: {
+      ...(startDate ? { $gte: new Date(startDate) } : {}),
+      ...(endDate ? { $lte: new Date(endDate) } : {}),
+      }
+    } : {};
+
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $and: [
+        {
+          $or: [
+            { exchange1: pointId },
+            { gathering1: pointId },
+            { gathering2: pointId },
+            { exchange2: pointId }
+          ]
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
+
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
     }
@@ -256,10 +278,34 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
     }
     */
 
+    const { startDate, endDate } = req.query;
+
     let incomingCount = 0;
     let outgoingCount = 0;
 
-    const listPackages = await filterByTime(pointId, req.query, package);
+    // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
+    const timeFilter = (startDate || endDate) ? {
+    sendDate: {
+      ...(startDate ? { $gte: new Date(startDate) } : {}),
+      ...(endDate ? { $lte: new Date(endDate) } : {}),
+      }
+    } : {};
+
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $and: [
+        {
+          $or: [
+            { exchange1: pointId },
+            { gathering1: pointId },
+            { gathering2: pointId },
+            { exchange2: pointId }
+          ]
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
+
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
     }
@@ -279,13 +325,26 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
         }
       }
 
-      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1) && (packages.status === 'shipping')){
+      // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo tất cả điểm đã qua hiện success
+      if (packages.status === 'shipping') {
+        if (locationFields.indexOf(packages.nextStep) > locationFields.indexOf(packages.location)) {
+          simplifiedPackage.status = 'shipping';
+        } else {
+          simplifiedPackage.status = 'success';
+        }
+      } else if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(packages.location)) {
+        simplifiedPackage.status = 'shipping';
+      } else {
+        simplifiedPackage.status = packages.status;
+      }
+
+      if (locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 1){
             if (!((packages.location === 'gathering1') && (packages.gathering1 === packages.gathering2))){
               outgoingCount++;
               simplifiedPackage.out = 1;
             }
           }
-      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0) && (packages.status !== 'shipping')){
+      if ((locationFields.indexOf(packages.nextStep) - locationFields.indexOf(simplifiedPackage.location) === 0)){
             if (!((packages.location === 'gathering2') && (packages.gathering1 === packages.gathering2))){
               incomingCount++;
               simplifiedPackage.in = 1;
@@ -312,21 +371,44 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.cookies.workplace;
+    const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
-
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
     }
     */
 
-    const listPackages = await filterByTime(pointId, req.query, package);
+    // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
+    const timeFilter = (startDate || endDate) ? {
+    sendDate: {
+      ...(startDate ? { $gte: new Date(startDate) } : {}),
+      ...(endDate ? { $lte: new Date(endDate) } : {}),
+      }
+    } : {};
+
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $and: [
+        {
+          $or: [
+            { exchange1: pointId },
+            { gathering1: pointId },
+            { gathering2: pointId },
+            { exchange2: pointId }
+          ]
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
+
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
@@ -363,7 +445,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.cookies.workplace;
+    const pointId = req.params.pointId;
     const { startDate, endDate } = req.query;
 
     /* auth
@@ -372,18 +454,43 @@ const listIncomingQueuedPackages = async (req, res) => {
     }
     */
 
-    const listPackages = await filterByTime(pointId, req.query, package);
+    // Thêm điều kiện filter sendDate theo khoảng thời gian nếu startDate hoặc endDate tồn tại
+    const timeFilter = (startDate || endDate) ? {
+    sendDate: {
+      ...(startDate ? { $gte: new Date(startDate) } : {}),
+      ...(endDate ? { $lte: new Date(endDate) } : {}),
+      }
+    } : {};
+
+    // Tìm tất cả các gói hàng có liên quan đến điểm chỉ định với cả 2 trạng thái "success" và "shipping" hoặc "no-receive" ở điểm cuối
+    const listPackages = await package.find({
+      $and: [
+        {
+          $or: [
+            { exchange1: pointId },
+            { gathering1: pointId },
+            { gathering2: pointId },
+            { exchange2: pointId }
+          ]
+        },
+        timeFilter // Thêm điều kiện filter theo khoảng thời gian
+      ]
+    });
+
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
     }
 
     const simplifiedList = listPackages.map((packages) => {
+
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
+        queued: 0,
       };
 
       for (const field of locationFields) {
