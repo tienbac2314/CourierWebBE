@@ -373,7 +373,7 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointId;
+    const pointId = req.cookies.workplace;
     const { startDate, endDate } = req.query;
     /* auth
     if (req.cookies.workplace !== pointId) {
@@ -447,7 +447,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
-    const pointId = req.params.pointId;
+    const pointId = req.cookies.workplace;
     const { startDate, endDate } = req.query;
 
     /* auth
