@@ -144,15 +144,17 @@ const listAllPackages = async (req, res) => {
               break;
           }
         });
+
+        const pieData = [
+          { name: 'SuccessCount', quantity: successCount },
+          { name: 'ShippingCount', quantity: shippingCount },
+          { name: 'NoReceiveCount', quantity: noReceiveCount },
+          { name: 'ReceivedCount', quantity: receiveCount },
+        ];
         return res.status(200).send({
           status: 200,
           packages: listPackages, 
-          counts: {
-            shipping: shippingCount,
-            success: successCount,
-            received: receiveCount,
-            'no-receive': noReceiveCount,
-          },
+          pieData: pieData,
         });
   } catch (error) {
     return res.status(400).send({ status: 400, message: error.message });

@@ -81,7 +81,7 @@ const loginUser = async (req, res) => {
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('role', user.role, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('workplace', (user.exchange || user.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).send( {status: 200, message: user.name, role: user.role });
+        res.status(200).send( {status: 200, message: user.name, role: user.role, jwt:token });
       } else {
         return res
           .status(404)
@@ -106,20 +106,24 @@ const logoutUser = async (req, res) => {
 };
 
 // protect routes that need higher role/user logged in
-const requireAuth = (req, res, next) => {
-  const token = req.cookies.jwt;
+const requireAuth = (req, res) => {
+  const token = req.body.jwt;
   if (token) {
-    jwt.verify(token, SECRET, (err, decodedToken) => {
+    jwt.verify(token, SECRET, async (err, decodedToken) => {
       if (err) {
-        console.log(err.message);
-        res.redirect('/login');
+        res.cookie('role', '', {maxAge: maxAge * 1});
+        res.cookie('workplace', '', {maxAge: maxAge * 1});
+        res.status(404).send({ status: 404, message: err.message });
       } else {
-        console.log(decodedToken);
-        next();
+        let currentUser = await user.findById(decodedToken.id.id);
+        let currentRole = currentUser.role;
+        res.status(200).send({ status: 200, role: currentRole });
       }
     });
   } else {
-    res.redirect('/login');
+    res.cookie('role', '', {maxAge: maxAge * 1});
+    res.cookie('workplace', '', {maxAge: maxAge * 1});
+    res.status(404).send({ status: 404, message: "Bad request" });
   }
 };
 
