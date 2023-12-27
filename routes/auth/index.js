@@ -22,6 +22,7 @@ router.get("/home", (req,res) => {
 router.post("/login", User.loginUser);
 router.post("/register", User.signUpUser);
 router.get("/logout", User.logoutUser);
+router.post("/role", User.requireAuth);
 
 // Check user on every path
 router.get('*', User.checkUser);
@@ -37,8 +38,8 @@ router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addN
 router.post("/update_package_by_id", User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.updatePackageById);
 router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
-
 router.get('/packages/:pointId', User.userRoleAuth("ceo", -1), Package.listPackagesByPoint);
+router.get('/all_packages/', User.userRoleAuth("ceo"), Package.listAllPackages);
 router.get('/packages/queued/incoming', User.userRoleAuth("employee_gather", -1), Package.listIncomingQueuedPackages);
 router.get('/packages/queued/outgoing', User.userRoleAuth("employee_gather", -1), Package.listOutgoingQueuedPackages);
 router.get('/current_packages/:pointId', User.userRoleAuth("manager_exchange", 1), Package.listInorOutPackagesByPoint);
