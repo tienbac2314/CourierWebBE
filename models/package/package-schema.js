@@ -60,7 +60,7 @@ const packageSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.String,
     },
     nextStep: {
-        type: schemaType.TypeString, //gather1, gather2, exchange2, customer
+        type: schemaType.TypeString, //gather1, gather2, exchange2, receiver
         default:"gather1",
     },
     gather1Date: {
