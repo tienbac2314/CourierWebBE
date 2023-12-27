@@ -14,11 +14,17 @@ const packageSchema = new mongoose.Schema(
     senderPhone: {
       type: mongoose.Schema.Types.String,
     },
+    senderAddress: {
+      type: mongoose.Schema.Types.String,
+    },
     receiver: {
         type: mongoose.Schema.Types.String,
         ref: "users",
     },
     receiverPhone: {
+      type: mongoose.Schema.Types.String,
+    },
+    receiverAddress: {
       type: mongoose.Schema.Types.String,
     },
     sendDate: {
@@ -32,7 +38,7 @@ const packageSchema = new mongoose.Schema(
         default: "shipping", // shipping, success, received, no-received
     },
     weight: {
-        type: schemaType.TypeDecimal
+        type: schemaType.TypeString,
     },
     exchange1: {
         type: mongoose.Schema.Types.ObjectId,
