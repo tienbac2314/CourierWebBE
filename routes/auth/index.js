@@ -35,7 +35,7 @@ router.get("/manageEmployee", User.userRoleAuth("manager_exchange", 1), User.man
 
 //package
 router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addNewPackage);
-router.post("/update_package_by_id", User.userRoleAuth("employee_exchange") && User.userRoleAuth("employee_gather"), Package.updatePackageById);
+router.post("/update_package_by_id", User.userRoleAuth("employee_gather", -1), Package.updatePackageById);
 router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
 router.get('/packages/:pointId', User.userRoleAuth("ceo", -1), Package.listPackagesByPoint);
