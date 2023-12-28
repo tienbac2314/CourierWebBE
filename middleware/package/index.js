@@ -4,6 +4,7 @@ const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const user = require("../../models/user/index");
 const { format } = require('date-fns');
+const mongoose = require("mongoose");
 
 const addNewPackage = async (req, res) => {
   try {
@@ -452,49 +453,63 @@ const getMonthlyPackageCounts = async (year, role, workplace) => {
       throw new Error('Invalid year format');
     }
 
-    const result = [];
-    for (let month = 1; month <= 12; month++) {
-      const startOfMonth = new Date(`${year}-${month.toString().padStart(2, '0')}-01`);
-      const lastDayOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
-      const endOfMonth = new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999);
-
-      let timeFilter = {
-        createdAt: {
-          $gte: startOfMonth,
-          $lte: endOfMonth,
+    const aggregationPipeline = [
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31T23:59:59.999Z`),
+          },
         },
-      };
+      },
+    ];
 
-      // Kiểm tra nếu role là 'manager_gather' hoặc 'manager_exchange' thì thêm điều kiện workplace
-      if (role === 'manager_gather' || role === 'manager_exchange') {
-        timeFilter = {
-          ...timeFilter,
-          $or: [
-            { exchange1: workplace },
-            { gathering1: workplace },
-            { gathering2: workplace },
-            { exchange2: workplace },
-          ],
-        };
-      }
+    // Kiểm tra nếu role là 'manager_gather' hoặc 'manager_exchange' thì thêm điều kiện workplace
+    if (role === 'manager_gather' || role === 'manager_exchange') {
+      const workplaceConditions = [
+        mongoose.Types.ObjectId(workplace), // Giá trị của workplace
+      ];
 
-      const listPackages = await package.find(timeFilter);
-      const packageSent = listPackages.length;
-
-      result.push({
-        id: month,
-        month: startOfMonth.toLocaleString('en-US', { month: 'long' }),
-        packageSent,
-      });
+      aggregationPipeline[0].$match.$or = [
+        { exchange1: { $in: workplaceConditions } },
+        { gathering1: { $in: workplaceConditions } },
+        { gathering2: { $in: workplaceConditions } },
+        { exchange2: { $in: workplaceConditions } },
+      ];
     }
 
-    return result;
+    aggregationPipeline.push(
+      {
+        $group: {
+          _id: { $month: '$createdAt' },
+          packageSent: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      }
+    );
+
+    const result = await package.aggregate(aggregationPipeline);
+
+    const allMonths = Array.from({ length: 12 }, (_, index) => index + 1); // Tạo mảng từ 1 đến 12
+
+    const monthlyPackageCounts = allMonths.map((month) => {
+      const matchingResult = result.find((item) => item._id === month);
+      return {
+        id: month,
+        month: new Date(`${year}-${month.toString().padStart(2, '0')}-01`).toLocaleString('en-US', { month: 'long' }),
+        packageSent: matchingResult ? matchingResult.packageSent : 0,
+      };
+    });
+
+    return monthlyPackageCounts;
   } catch (error) {
     throw error;
   }
 };
 
-// Sử dụng hàm trong endpoint của bạn
+
 const listPackagesByMonth = async (req, res) => {
   try {
     const year = req.params.year;
