@@ -8,7 +8,33 @@ const mongoose = require("mongoose");
 
 const addNewPackage = async (req, res) => {
   try {
-    const newPackage = await package.insertMany(req.body);
+    
+    const { name, sender, senderPhone, senderAddress, receiver, receiverPhone, receiverAddress, weight, exchange2} = req.body;
+
+    const exchange2_place = await Exchange.findById(req.body.exchange2);
+
+    const gathering2 = exchange2_place.gathering;
+
+    const exchange1 = await Exchange.findById(req.cookies.workplace);
+
+    const gathering1 = exchange1.gathering;
+
+    // Tạo gói hàng mới với các thông tin đã lấy được
+    const newPackage = await package.create({
+      name,
+      sender,
+      senderPhone,
+      senderAddress,
+      receiver,
+      receiverPhone,
+      receiverAddress,
+      weight,
+      exchange1: req.cookies.workplace,
+      gathering1: gathering1,
+      gathering2: gathering2,
+      exchange2: exchange2,
+    });
+
     return res.status(200).send({ status: 200, newPackage });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });

@@ -20,6 +20,7 @@ router.post('*', User.checkUser);
 router.post("/register", User.userRoleAuth("manager_exchange", 1), User.signUpUser);
 router.post("/delete_user_by_id", User.userRoleAuth("manager_exchange", 1), User.deleteUserById);
 router.post("/update_user_by_id", User.userRoleAuth("manager_exchange", 1), User.updateUserById);
+router.get("/get_user_by_id/:_id", User.userRoleAuth("employee_exchange", 1), User.getUserById);
 router.get("/manageEmployee", User.userRoleAuth("manager_exchange", 1), User.manageEmployee);
 
 //package
@@ -27,6 +28,7 @@ router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addN
 router.post("/update_package_by_id", User.userRoleAuth("employee_gather", -1), Package.updatePackageById);
 router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
+
 router.get('/packages/:pointId', User.userRoleAuth("ceo", -1), Package.listPackagesByPoint);
 router.get('/all_packages/', User.userRoleAuth("employee_exchange", 1), Package.listAllPackages);
 router.get('/packages/queued/incoming', User.userRoleAuth("employee_gather", -1), Package.listIncomingQueuedPackages);
@@ -40,6 +42,7 @@ router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
 router.post("/update_exchange_by_id", User.userRoleAuth("ceo"), Exchange.updateExchangeById);
 router.post("/delete_exchange_by_id", User.userRoleAuth("ceo"), Exchange.deleteExchangeById);
 router.get("/get_exchange_by_gather/:_id", User.userRoleAuth("ceo"), Exchange.getExchangeByGather);
+router.get("/get_all_exchange", User.userRoleAuth("employee_exchange"), Exchange.getAllExchange);
 
 //gathering ( diem tap ket)
 router.post("/add_gathering", User.userRoleAuth("ceo"), Gathering.addNewGathering);

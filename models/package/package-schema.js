@@ -8,8 +8,7 @@ const packageSchema = new mongoose.Schema(
       required: true,
     },
     sender: {
-        type: mongoose.Schema.Types.String,
-        ref: "users", 
+        type: mongoose.Schema.Types.String, 
     },
     senderPhone: {
       type: mongoose.Schema.Types.String,
@@ -19,7 +18,6 @@ const packageSchema = new mongoose.Schema(
     },
     receiver: {
         type: mongoose.Schema.Types.String,
-        ref: "users",
     },
     receiverPhone: {
       type: mongoose.Schema.Types.String,

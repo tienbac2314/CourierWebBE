@@ -62,6 +62,26 @@ const getExchangeById = async (req, res) => {
   }
 };
 
+const getAllExchange= async (req, res) => {
+  try {
+    const listExchange = await Exchange.find();
+
+    if (!listExchange) {
+      return res.status(404).send({ status: 404, message: 'Exchange not found' });
+    }
+
+    const simplifiedList = listExchange.map(exchange => ({
+      id: exchange._id,
+      name: exchange.name,
+      location: `${exchange.street}, ${exchange.district}, ${exchange.city}`,
+    }));
+
+    return res.status(200).send({ status: 200, exchanges: simplifiedList });
+  } catch (error) {
+    return res.status(400).send({ status: 400, message: error });
+  }
+};
+
 const getExchangeByGather = async (req, res) => {
   try {
     const currentGathering = await Gathering.findById(req.params._id);
@@ -103,6 +123,7 @@ module.exports = {
   addNewExchange,
   updateExchangeById,
   deleteExchangeById,
+  getAllExchange,
   getExchangeById,
   getExchangeByGather,
 };

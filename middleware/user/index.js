@@ -124,7 +124,7 @@ const loginUser = async (req, res) => {
     }
 };
 
-const logoutUser = async (req,res) => {
+const logoutUser = async (req, res) => {
   try {
     res.cookie('jwt', '', { maxAge: 1 });
     res.cookie('role', '', { maxAge: 1 });
@@ -132,6 +132,20 @@ const logoutUser = async (req,res) => {
     res.status(200).send("log out successfully");
   } catch (e) {
     res.status(404).send({ status: 404, message: e.message });
+  }
+};
+
+const getUserById = async (req, res) => {
+  try {
+    const searchedUser = await user.findById(req.param._id);
+
+    if (!searchedUser) {
+      return res.status(404).send({ status: 404, message: 'User not found' });
+    }
+
+    return res.status(200).send({ status: 200, user: searchedUser });
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message });
   }
 };
 
@@ -323,6 +337,7 @@ module.exports = {
     signUpUser,
     loginUser,
     logoutUser,
+    getUserById,
     requireAuth,
     userRoleAuth,
     checkUser,
