@@ -138,7 +138,7 @@ const getPackageById = async (req,res) =>{
 
 const listAllPackages = async (req, res) => {
   try {
-    if (req.cookies.role === 'manager_gather' || req.cookies.role === 'manager_exchange'){
+    if (req.cookies.role === 'manager_gather' || req.cookies.role === 'manager_exchange' || req.cookies.role === 'employee_exchange'){
         return await listPackagesByPoint(req, res);
     } else {
     const listPackages = await filterByTime('all', req.query, package);
