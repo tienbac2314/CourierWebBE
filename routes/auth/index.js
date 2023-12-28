@@ -20,7 +20,6 @@ router.get("/home", (req,res) => {
 
 // ROUTES * /api/auth/
 router.post("/login", User.loginUser);
-router.post("/register", User.signUpUser);
 router.get("/logout", User.logoutUser);
 router.post("/role", User.requireAuth);
 
@@ -29,6 +28,7 @@ router.get('*', User.checkUser);
 router.post('*', User.checkUser);
 
 //user
+router.post("/register", User.userRoleAuth("manager_exchange", 1), User.signUpUser);
 router.post("/delete_user_by_id", User.userRoleAuth("manager_exchange", 1), User.deleteUserById);
 router.post("/update_user_by_id", User.userRoleAuth("manager_exchange", 1), User.updateUserById);
 router.get("/manageEmployee", User.userRoleAuth("manager_exchange", 1), User.manageEmployee);
@@ -44,7 +44,7 @@ router.get('/all_packages/', User.userRoleAuth("manager_exchange", 1), Package.l
 router.get('/packages/queued/incoming', User.userRoleAuth("employee_gather", -1), Package.listIncomingQueuedPackages);
 router.get('/packages/queued/outgoing', User.userRoleAuth("employee_gather", -1), Package.listOutgoingQueuedPackages);
 router.get('/current_packages/:pointId', User.userRoleAuth("manager_exchange", 1), Package.listInorOutPackagesByPoint);
-router.get('/all_packages/:year', User.userRoleAuth("manager_exchange", 1), Package.listPackagesByMonth);
+router.get('/all_packages/:year', User.userRoleAuth("employee_exchange", 1), Package.listPackagesByMonth);
 router.get('/recent_packages/', User.userRoleAuth("manager_exchange", 1), Package.listFiveRecentPackages);
 
   

@@ -23,7 +23,8 @@ const createToken = (id) => {
 
 const signUpUser = async (req, res) => {
   console.log(req.body);
-  const { name, email, password, phone, dob, gender } = req.body;
+  const { name, email, password, phone, dob, gender} = req.body;
+  let {workplace_type, workplace} = req.body;
   try {
     // const validate = await schema.validateAsync(req.body);
 
@@ -34,7 +35,7 @@ const signUpUser = async (req, res) => {
         .send({ status: 404, message: "User already exist!" });
     }
 
-    const new_user = {
+    const new_employee = {
       name,
       email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
@@ -42,12 +43,43 @@ const signUpUser = async (req, res) => {
       dob,
       gender,
     };
-    const user = await insertNewDocument("user", new_user);
-    let token = createToken({id: new_user._id})
-    user.password = undefined;
+
+    if ((!workplace) && (!workplace_type)){
+      workplace = '0';
+      workplace_type = '0';
+    }
+
+    let new_user;
+    switch (req.cookies.role) {
+      case "ceo":
+        new_user = {
+          ...new_employee,
+          [workplace_type]: workplace,
+          role: workplace_type.includes("exchange") ? "manager_exchange" : workplace_type.includes("gathering") ? "manager_gather" : undefined,
+        };
+        break;
+      case "manager_gather":
+          new_user = {
+            ...new_employee,
+            gathering: req.cookies.workplace,
+            role: "employee_gather",
+          };
+          break;
+      case "manager_exchange":
+          new_user = {
+            ...new_employee,
+            exchange: req.cookies.workplace,
+            role: "employee_exchange",
+          };
+          break;
+      default:
+          break;
+    }    
     
-    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).send({ status: 200, user, token });
+    const user = await insertNewDocument("user", new_user);
+    user.password = undefined;
+
+    res.status(200).send({ status: 200, user });
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
@@ -87,20 +119,18 @@ const loginUser = async (req, res) => {
           .status(404)
           .send({ status: 404, message: "User does not exist!" });
       }
-    } catch (err) {
-      // const e = handleErrors(err);
-      res.status(400).send({ status: 400, message: err });
+    } catch (e) {
+      res.status(400).send({ status: 400, message: e.message });
     }
 };
 
-const logoutUser = async (req, res) => {
+const logoutUser = async (res) => {
   try {
     res.cookie('jwt', '', { maxAge: 1 });
     res.cookie('role', '', { maxAge: 1 });
     res.cookie('workplace', '', { maxAge: 1 });
     res.status(200).send("log out successfully");
-  } catch (err) {
-    const e = handleErrors(err);
+  } catch (e) {
     res.status(404).send({ status: 404, message: e.message });
   }
 };
@@ -182,7 +212,7 @@ const checkUser = (req, res, next) => {
         next();
       } else {
         let currentUser = await user.findById(decodedToken.id.id);
-        let currentRole = currentUser.role;
+        let currentRole = await currentUser.role;
         res.cookie('role', currentRole, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('workplace', (currentUser.exchange || currentUser.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
         next();
