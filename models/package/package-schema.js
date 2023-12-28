@@ -29,6 +29,7 @@ const packageSchema = new mongoose.Schema(
     },
     sendDate: {
       type: schemaType.TypeDate,
+      default: Date.now,
     },
     receiveDate: {
         type: schemaType.TypeDate,
@@ -60,8 +61,8 @@ const packageSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.String,
     },
     nextStep: {
-        type: schemaType.TypeString, //gather1, gather2, exchange2, receiver
-        default:"gather1",
+        type: schemaType.TypeString, //gathering1, gathering2, exchange2, receiver
+        default:"gathering1",
     },
     gather1Date: {
         type: schemaType.TypeDate

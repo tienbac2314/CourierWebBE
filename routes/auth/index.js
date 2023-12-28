@@ -5,17 +5,6 @@ const User = require("../../middleware/user");
 const Package = require("../../middleware/package");
 const Exchange = require("../../middleware/exchange");
 const Gathering = require("../../middleware/gathering");
-router.get("/login", (req, res) => {
-    res.sendFile("login.html", { root: './public/shared' })
-});
-router.get("/register", (req, res) => {
-    res.sendFile("register.html", { root: './public/shared' })
-});
-router.get("/home", (req,res) => {
-    if ((req.cookies.role) == ('employee_gather')) {
-        res.sendFile("home.html", {root:"./public/employeeGather"})
-    }
-})
 
 
 // ROUTES * /api/auth/
@@ -38,19 +27,13 @@ router.post("/add_package", User.userRoleAuth("employee_exchange"), Package.addN
 router.post("/update_package_by_id", User.userRoleAuth("employee_gather", -1), Package.updatePackageById);
 router.post("/delete_package_by_id", User.userRoleAuth("employee_exchange"), Package.deletePackageById);
 router.get("/get_package_by_id/:_id", Package.getPackageById);
-<<<<<<< HEAD
-
 router.get('/packages/:pointId', User.userRoleAuth("ceo", -1), Package.listPackagesByPoint);
 router.get('/all_packages/', User.userRoleAuth("manager_exchange", 1), Package.listAllPackages);
-=======
-router.get('/packages/:pointId', User.userRoleAuth("ceo", -1), Package.listPackagesByPoint);
-router.get('/all_packages/', User.userRoleAuth("ceo"), Package.listAllPackages);
->>>>>>> daa26a1 (fix pieData)
 router.get('/packages/queued/incoming', User.userRoleAuth("employee_gather", -1), Package.listIncomingQueuedPackages);
 router.get('/packages/queued/outgoing', User.userRoleAuth("employee_gather", -1), Package.listOutgoingQueuedPackages);
 router.get('/current_packages/:pointId', User.userRoleAuth("manager_exchange", 1), Package.listInorOutPackagesByPoint);
-router.get('/all_packages/:year', User.userRoleAuth("ceo"), Package.listPackagesByMonth);
-  
+router.get('/all_packages/:year', User.userRoleAuth("employee_exchange", 1), Package.listPackagesByMonth);
+router.get('/recent_packages/', User.userRoleAuth("manager_exchange", 1), Package.listFiveRecentPackages);
 
 //exchange ( diem giao dich)
 router.post("/add_exchange", User.userRoleAuth("ceo"), Exchange.addNewExchange);
