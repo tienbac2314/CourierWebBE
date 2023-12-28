@@ -109,7 +109,27 @@ const getPackageById = async (req,res) =>{
     if (!searchedPackage) {
       return res.status(404).send({ status: 404, message: 'Package not found' });
     }
-    return res.status(200).send({ status: 200, package: searchedPackage});
+
+    const exchange1 = await Exchange.findById(searchedPackage.exchange1._id);
+    const gathering1 = await Gathering.findById(searchedPackage.gathering1._id);
+    const gathering2 = await Gathering.findById(searchedPackage.gathering2._id);
+    const exchange2 = await Exchange.findById(searchedPackage.exchange2._id);
+
+    const packageWithOkay = {
+      ...searchedPackage.toObject(),
+      exchange1_name: exchange1.name,
+      gathering1_name: gathering1.name,
+      gathering2_name: gathering2.name,
+      exchange2_name: exchange2.name,
+    };
+
+    // Construct the response object
+    const response = {
+      status: 200,
+      package: packageWithOkay,
+    };
+
+    return res.status(200).send(response);
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
@@ -398,7 +418,6 @@ const listIncomingQueuedPackages = async (req, res) => {
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
-        queued: 0,
       };
 
       for (const field of locationFields) {
