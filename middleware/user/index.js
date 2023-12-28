@@ -124,7 +124,7 @@ const loginUser = async (req, res) => {
     }
 };
 
-const logoutUser = async (res) => {
+const logoutUser = async (req,res) => {
   try {
     res.cookie('jwt', '', { maxAge: 1 });
     res.cookie('role', '', { maxAge: 1 });
