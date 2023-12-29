@@ -153,7 +153,10 @@ const logoutUser = async (req, res) => {
 
 const getUserById = async (req, res) => {
   try {
-    const searchedUser = await User.findById(req.param._id);
+    const searchedUser = await User.findById(
+      req.params._id, 
+      { password: 0, __v: 0, createdAt: 0, updatedAt: 0 }
+    );
 
     if (!searchedUser) {
       return res.status(404).send({ status: 404, message: 'User not found' });
