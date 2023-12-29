@@ -103,12 +103,24 @@ const checkUser = (req, res, next) => {
 // thay đổi trưởng điểm
 const updateWorkplace = async (workplace_type, workplaceId, userId) => {
   try {
+    
     // Lấy thông tin trưởng cũ và xoá tham chiếu nơi làm việc cũ
     let oldManager;
+    let currentWorkplace;
     if (workplace_type === 'exchange'){
-      const exchange_point = await Exchange.findById(workplaceId);
+      currentWorkplace = Exchange.findById(workplaceId);
+      oldManager = User.findByIdAndUpdate(
+        currentWorkplace.manager,
+        { role: 'employee_exchange' },
+        { new: true }
+      );
     } else if (workplace_type === 'gathering'){
-      const exchange_point = await Exchange.findById(workplaceId);
+      currentWorkplace = Gathering.findById(workplaceId);
+      oldManager = User.findByIdAndUpdate(
+        currentWorkplace.manager,
+        { role: 'employee_gather' },
+        { new: true }
+      );
     }
 
     // Cập nhật thông tin mới cho người dùng

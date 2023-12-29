@@ -38,7 +38,7 @@ router.get('/packages/:pointId', userMiddleware.userRoleAuth("ceo", -1), package
 router.get('/all_packages/', userMiddleware.userRoleAuth("employee_exchange", 1), package.listAllPackages);
 router.get('/packages/queued/incoming', userMiddleware.userRoleAuth("employee_gather", -1), package.listIncomingQueuedPackages);
 router.get('/packages/queued/outgoing', userMiddleware.userRoleAuth("employee_gather", -1), package.listOutgoingQueuedPackages);
-router.get('/current_packages/:pointId', userMiddleware.userRoleAuth("manager_exchange", 1), package.listInorOutPackagesByPoint);
+router.get('/current_packages/', userMiddleware.userRoleAuth("manager_exchange", 1), package.listInorOutPackagesByPoint);
 router.get('/all_packages/:year', userMiddleware.userRoleAuth("manager_exchange", 1), package.listPackagesByMonth);
 router.get('/recent_packages/', userMiddleware.userRoleAuth("manager_exchange", 1), package.listFiveRecentPackages);
 

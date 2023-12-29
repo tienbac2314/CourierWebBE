@@ -22,13 +22,7 @@ const schema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
   phone: Joi.string().length(10),
-  dob: Joi.string().custom((value, helpers) => {
-    const regex = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-    if (!regex.test(value)) {
-      return helpers.message('Invalid dob format. Please use dd/mm/yyyy.');
-    }
-    return value;
-  }),
+  dob: Joi.string(),
   gender: Joi.string().valid('male', 'female'),
   workplace: Joi.string(),
   workplace_type: Joi.string(),
@@ -48,16 +42,12 @@ const signUpUser = async (req, res) => {
         .send({ status: 404, message: "User already exist!" });
     }
 
-    const transformedDob = dob
-      ? format(parse(dob, 'dd/MM/yyyy', new Date()), 'yyyy/MM/dd')
-      : undefined;
-
     const new_employee = {
       name,
       email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
       phone,
-      dob: transformedDob,
+      dob,
       gender,
     };
 
@@ -249,17 +239,17 @@ const manageEmployee = async (req, res) => {
 
   const listEmployee = await User.find(filter);
 
-    const simplifiedList = listEmployee.map(employee => ({
-      id: employee._id,
-      email: employee.email,
-      name: employee.name,
-      role: employee.role,
-      dob: moment(employee.dob).format('DD-MM-YYYY'),
-      gender: employee.gender,
-      // variables
-    }));
+  const simplifiedList = listEmployee.map(employee => ({
+    id: employee._id,
+    email: employee.email,
+    name: employee.name,
+    role: employee.role,
+    dob: moment(employee.dob).format('DD-MM-YYYY'),
+    gender: employee.gender,
+    // variables
+  }));
 
-    return res.status(200).send({ status: 200, employee: simplifiedList });
+    return res.status(200).send({ status: 200, employee: simplifiedList, employee_count: simplifiedList.length });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message});
   }

@@ -3,7 +3,7 @@ const packageMiddleware = require("../../middleware/package");
 const Package = require("../../models/package/index")
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
-const { format } = require('date-fns');
+const moment = require('moment');
 const mongoose = require("mongoose");
 
 
@@ -183,10 +183,11 @@ const listPackagesByPoint = async (req, res) => {
 
     const listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
     const simplifiedList = listPackages.map((packages) => {
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
-        sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
+        sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
         weight: weight,
         status: packages.status,
         location: '',
@@ -267,7 +268,7 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
-        sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
+        sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
         weight: weight,
         status: packages.status,
         location: '',
@@ -345,7 +346,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
-        sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
+        sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
         weight: weight,
         status: packages.status,
         location: '',
@@ -400,7 +401,7 @@ const listIncomingQueuedPackages = async (req, res) => {
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
-        sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
+        sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
         weight: weight,
         status: packages.status,
         location: '',
@@ -474,7 +475,7 @@ const listFiveRecentPackages = async (req, res) => {
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
-        sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
+        sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
         weight: weight,
         status: packages.status,
       };
