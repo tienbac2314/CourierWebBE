@@ -119,8 +119,8 @@ const loginUser = async (req, res) => {
         const passwordIsValid = bcrypt.compareSync(password, user.password);
         if (!passwordIsValid) {
           return res
-            .status(404)
-            .send({ status: 404, message: "Invalid Email or Password!" });
+            .status(400)
+            .send({ status: 400, message: "Invalid Email or Password!" });
         }
         user.password = undefined;
 
@@ -129,7 +129,7 @@ const loginUser = async (req, res) => {
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('role', user.role, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('workplace', (user.exchange || user.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
-        res.status(200).send( {status: 200, message: user.name, role: user.role, jwt:token });
+        res.status(200).send( {status: 200, message: user._id, role: user.role, jwt:token });
       } else {
         return res
           .status(404)
