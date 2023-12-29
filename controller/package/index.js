@@ -252,7 +252,7 @@ const listPackagesByPoint = async (req, res) => {
 //chỉ thống kê kê hàng đi đến điểm ngay sau, đến từ điểm ngay trước
 const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đến
   try {
-    if (!req.cookies.workplace) {
+    if (!req.cookies.workplace || req.cookies.workplace === undefined) {
       return res.status(404).send({ status: 404, message: 'no workplace found'});
     }
     const pointId = req.cookies.workplace;
