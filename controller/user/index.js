@@ -1,29 +1,45 @@
 const jwt = require("jsonwebtoken");
-const userMiddleware = require("../../middleware/user");
 const bcrypt = require("bcryptjs");
 const { SECRET } = require("../../config");
 const { insertNewDocument, findOne, findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
-const Exchange = require("../../models/exchange/index");
-const Gathering = require("../../models/gathering/index");
+const { parse, format} = require('date-fns');
+const exchange = require("../../models/exchange/index");
+const exchangeMiddleware = require("../../middleware/exchange");
+const gathering = require("../../models/gathering/index");
+const gatheringMiddleware = require("../../middleware/gathering");
 const user = require("../../models/user/index");
+const userMiddleware = require("../../middleware/user");
 const moment = require('moment');
 const { ObjectID } = require("../../types");
+
+
+const maxAge = 3 * 24 * 60 * 60;
+
+// Check đầu vào lúc đăng ký
 const schema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
-  phone: Joi.string().required(),
+  phone: Joi.string().length(10),
+  dob: Joi.string().custom((value, helpers) => {
+    const regex = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+    if (!regex.test(value)) {
+      return helpers.message('Invalid dob format. Please use dd/mm/yyyy.');
+    }
+    return value;
+  }),
+  gender: Joi.string().valid('male', 'female'),
+  workplace: Joi.string(),
+  workplace_type: Joi.string(),
 });
 
-
-const maxAge = 3 * 24 * 60 * 60;
 const signUpUser = async (req, res) => {
   console.log(req.body);
   const { name, email, password, phone, dob, gender} = req.body;
   let {workplace_type, workplace} = req.body;
   try {
-    // const validate = await schema.validateAsync(req.body);
+    const validate = await schema.validateAsync(req.body);
 
     const check_user_exist = await findOne("user", { email });
     if (check_user_exist) {
@@ -32,12 +48,16 @@ const signUpUser = async (req, res) => {
         .send({ status: 404, message: "User already exist!" });
     }
 
+    const transformedDob = dob
+      ? format(parse(dob, 'dd/MM/yyyy', new Date()), 'yyyy/MM/dd')
+      : undefined;
+
     const new_employee = {
       name,
       email,
       password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
       phone,
-      dob,
+      dob: transformedDob,
       gender,
     };
 
@@ -47,6 +67,7 @@ const signUpUser = async (req, res) => {
     }
 
     let new_user;
+    // xét các trường hợp role để add data hợp lý
     switch (req.cookies.role) {
       case "ceo":
         new_user = {
@@ -76,17 +97,26 @@ const signUpUser = async (req, res) => {
     const user = await insertNewDocument("user", new_user);
     user.password = undefined;
 
+    // cập nhật trường manager trên workplace tương ứng
+    if (workplace_type === "exchange") {
+      await exchangeMiddleware.updateExchangeManager(workplace, user._id);
+    } else if (workplace_type === "gathering") {
+      await gatheringMiddleware.updateGatheringManager(workplace, user._id);
+    }
+
     res.status(200).send({ status: 200, user });
   } catch (e) {
     return res.status(400).send({ status: 400, message: e.message });
   }
-};
+}
 
+
+//check đầu vào lúc đăng nhập
 const schema1 = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
-  });
-  
+  email: Joi.string().email().required(),
+  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{6,30}$")),
+});
+
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -186,6 +216,7 @@ const deleteUserById = async (req,res) => {
     }
 };
 
+// thống kê nhân viên dựa theo role và nơi làm việc
 const manageEmployee = async (req, res) => {
   try {
   let filter = undefined;

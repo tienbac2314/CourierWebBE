@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Gathering = require("../../models/gathering/index");
-const user = require("../../models/user/index");
+const userMiddleware = require("../../middleware/user");
 const { getManagerGather } = require ("../user");
 const moment = require('moment');
 
@@ -18,7 +18,12 @@ const addNewGathering = async (req, res) => {
 
 const updateGatheringById = async (req, res) => {
   try {
-    const { _id, ...updatedData } = req.body;
+    const { _id, manager, ...updatedData } = req.body;
+
+    //nếu sửa trường manager thì sửa cả db của user tương ứng
+    if (manager) {
+      userMiddleware.updateUserById("gathering", _id, manager);
+    }
     const updatedGathering = await Gathering.findByIdAndUpdate(_id, updatedData, { new: true });
     
     if (!updatedGathering) {

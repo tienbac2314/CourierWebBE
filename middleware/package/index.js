@@ -25,7 +25,7 @@ const filterByTime = async (pointId, query, packageModel) => {
     }
 
     const timeFilter = (start || end) ? {
-      createdAt: {
+      sendDate: {
         ...(start ? { $gte: new Date(startOfDay) } : {}),
         ...(end ? { $lte: new Date(endOfDay) } : {}),
         }
@@ -66,7 +66,7 @@ const getMonthlyPackageCounts = async (year, role, workplace) => {
     const aggregationPipeline = [
       {
         $match: {
-          createdAt: {
+          sendDate: {
             $gte: new Date(`${year}-01-01`),
             $lte: new Date(`${year}-12-31T23:59:59.999Z`),
           },
@@ -91,7 +91,7 @@ const getMonthlyPackageCounts = async (year, role, workplace) => {
     aggregationPipeline.push(
       {
         $group: {
-          _id: { $month: '$createdAt' },
+          _id: { $month: '$sendDate' },
           packageSent: { $sum: 1 },
         },
       },

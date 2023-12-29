@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const { SECRET } = require("../../config");
-const user = require("../../models/user/index");
+const User = require("../../models/user/index");
+const Gathering = require("../../models/gathering/index");
+const Exchange = require("../../models/exchange/index");
 const mongoose = require("mongoose");
 
 const maxAge = 3 * 24 * 60 * 60;
@@ -8,7 +10,7 @@ const createToken = (id) => {
   return jwt.sign({ id }, SECRET, { expiresIn: maxAge });
 };
 
-// protect routes that need higher role/user logged in
+// bảo vệ định tuyến cần quyền/đã đăng nhập
 const requireAuth = (req, res) => {
   const token = req.body.jwt;
   if (token) {
@@ -18,7 +20,7 @@ const requireAuth = (req, res) => {
         res.cookie('workplace', '', {maxAge: maxAge * 1});
         res.status(404).send({ status: 404, message: err.message });
       } else {
-        let currentUser = await user.findById(decodedToken.id.id);
+        let currentUser = await User.findById(decodedToken.id.id);
         let currentRole = currentUser.role;
         res.status(200).send({ status: 200, role: currentRole });
       }
@@ -84,7 +86,7 @@ const checkUser = (req, res, next) => {
         res.cookie('workplace', '', {maxAge: maxAge * 1});
         next();
       } else {
-        let currentUser = await user.findById(decodedToken.id.id);
+        let currentUser = await User.findById(decodedToken.id.id);
         let currentRole = await currentUser.role;
         res.cookie('role', currentRole, { httpOnly: true, maxAge: maxAge * 1000 });
         res.cookie('workplace', (currentUser.exchange || currentUser.gathering)?.toString(), { httpOnly: true, maxAge: maxAge * 1000 });
@@ -98,9 +100,35 @@ const checkUser = (req, res, next) => {
   }
 };
 
+// thay đổi trưởng điểm
+const updateWorkplace = async (workplace_type, workplaceId, userId) => {
+  try {
+    // Lấy thông tin trưởng cũ và xoá tham chiếu nơi làm việc cũ
+    let oldManager;
+    if (workplace_type === 'exchange'){
+      const exchange_point = await Exchange.findById(workplaceId);
+    } else if (workplace_type === 'gathering'){
+      const exchange_point = await Exchange.findById(workplaceId);
+    }
+
+    // Cập nhật thông tin mới cho người dùng
+    const updatedManager = await User.findByIdAndUpdate(userId, { [workplace_type]: workplaceId }, { new: true });
+
+    if (!updatedManager) {
+      console.error('User not found');
+    }
+
+    return oldManager;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   createToken,
   requireAuth,
   userRoleAuth,
   checkUser,
+  updateWorkplace,
 };

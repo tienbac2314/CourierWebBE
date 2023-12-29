@@ -108,6 +108,7 @@ const getPackageById = async (req,res) =>{
   }
 }
 
+//thống kê tất cả kiện hàng liên quan đến 1 điểm, nếu là 'ceo' thì thống kê toàn hệ thống
 const listAllPackages = async (req, res) => {
   try {
     if (req.cookies.role === 'manager_gather' || req.cookies.role === 'manager_exchange' || req.cookies.role === 'employee_exchange'){
@@ -159,6 +160,7 @@ const listAllPackages = async (req, res) => {
   }
 };
 
+//thống kê tất cả kiện hàng liên quan đến 1 điểm
 const listPackagesByPoint = async (req, res) => {
   try {
 
@@ -181,7 +183,7 @@ const listPackagesByPoint = async (req, res) => {
         id: packages._id,
         name: packages.name,
         sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
-        weight: packages.weight,
+        weight: weight,
         status: packages.status,
         location: '',
       };
@@ -243,16 +245,10 @@ const listPackagesByPoint = async (req, res) => {
   }
 };
 
-//chỉ liệt kê hàng đi từ điểm ngay trước, đến từ điểm ngay sau
+//chỉ thống kê kê hàng đi đến điểm ngay sau, đến từ điểm ngay trước
 const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đến
   try {
     const pointId = req.params.pointId;
-
-    /*
-    if (req.cookies.workplace !== pointId) {
-      return res.status(405).send({ status: 405, message: 'Method not allowed' });
-    }
-    */
 
     let incomingCount = 0;
     let outgoingCount = 0;
@@ -260,11 +256,12 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
     const listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
 
     const simplifiedList = listPackages.map((packages) => {
+      const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
       const simplifiedPackage = {
         id: packages._id,
         name: packages.name,
         sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
-        weight: packages.weight,
+        weight: weight,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
@@ -320,6 +317,7 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
   }
 };
 
+// Thống kê đơn hàng cần được xác nhận chuyển đi tiếp
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
@@ -337,7 +335,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
         id: packages._id,
         name: packages.name,
         sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
-        weight: packages.weight,
+        weight: weight,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
@@ -368,6 +366,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
     
 };
 
+// Thống kê đơn hàng cần được xác nhận đã đến
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
@@ -387,7 +386,7 @@ const listIncomingQueuedPackages = async (req, res) => {
         id: packages._id,
         name: packages.name,
         sendDate: format(packages.sendDate, 'dd-MM-yyyy'),
-        weight: packages.weight,
+        weight: weight,
         status: packages.status,
         location: '',
         nextstep: packages.nextStep,
@@ -418,6 +417,7 @@ const listIncomingQueuedPackages = async (req, res) => {
     
 };
 
+// Thống kê đơn hàng trong 1 năm liên quan tới 1 điểm, nếu là ceo thì lấy từ hệ thống
 const listPackagesByMonth = async (req, res) => {
   try {
     const year = req.params.year;
@@ -435,6 +435,7 @@ const listPackagesByMonth = async (req, res) => {
   }
 };
 
+// Thống kê 5 đơn hàng mới nhất liên quan tới 1 điểm, nếu là ceo thì lấy từ toàn hệ thống
 const listFiveRecentPackages = async (req, res) => {
   try {
     const role  = req.cookies.role;

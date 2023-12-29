@@ -2,8 +2,11 @@ const jwt = require("jsonwebtoken");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const user = require("../../models/user/index");
+const userMiddleware = require("../../middleware/user");
 const moment = require('moment')
 const { getManagerExchange }= require ("../user");
+
+
 const addNewExchange = async (req, res) => {
   try {
     const newExchange = await Exchange.insertMany(req.body);
@@ -17,7 +20,10 @@ const addNewExchange = async (req, res) => {
 
 const updateExchangeById = async (req, res) => {
   try {
-    const { _id, ...updatedData } = req.body;
+    const { _id, manager, ...updatedData } = req.body;
+    if (manager) {
+      userMiddleware.updateUserById("exchange", _id, manager);
+    }
     const updatedExchange = await Exchange.findByIdAndUpdate(_id, updatedData, { new: true });
 
     if (!updatedExchange) {
@@ -62,7 +68,8 @@ const getExchangeById = async (req, res) => {
   }
 };
 
-const getAllExchange= async (req, res) => {
+// Thống kê toàn bộ các điểm giao dịch
+const getAllExchange = async (req, res) => {
   try {
     const listExchange = await Exchange.find();
 
@@ -82,6 +89,7 @@ const getAllExchange= async (req, res) => {
   }
 };
 
+// Thông kê các điểm giao dịch trong 1 điểm tập kết
 const getExchangeByGather = async (req, res) => {
   try {
     const currentGathering = await Gathering.findById(req.params._id);
