@@ -73,7 +73,7 @@ const deletePackageById =async (req,res) => {
       }
 };
 
-const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
+const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2', 'receiver'];
 
 const getPackageById = async (req,res) =>{
   try {
