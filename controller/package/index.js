@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const packageMiddleware = require("../../middleware/package");
-const package = require("../../models/package/index")
+const Package = require("../../models/package/index")
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const { format } = require('date-fns');
@@ -21,7 +21,7 @@ const addNewPackage = async (req, res) => {
     const gathering1 = exchange1.gathering;
 
     // Tạo gói hàng mới với các thông tin đã lấy được
-    const newPackage = await package.create({
+    const newPackage = await Package.create({
       name,
       sender,
       senderPhone,
@@ -46,7 +46,7 @@ const updatePackageById = async (req, res) => {
     try {
       const { _id, ...updatedData } = req.body;
   
-      const updatedPackage = await package.findByIdAndUpdate(_id, updatedData, { new: true });
+      const updatedPackage = await Package.findByIdAndUpdate(_id, updatedData, { new: true });
   
       if (!updatedPackage) {
         return res.status(404).send({ status: 404, message: 'Package not found' });
@@ -61,7 +61,7 @@ const updatePackageById = async (req, res) => {
 const deletePackageById =async (req,res) => {
     try {
         const filter = { _id: req.body._id };
-        const deletePackage = await package.deleteOne(filter);
+        const deletePackage = await Package.deleteOne(filter);
     
         if (!deletePackage) {
           return res.status(404).send({ status: 404, message: 'Package not found' });
@@ -77,7 +77,7 @@ const locationFields = ['exchange1', 'gathering1', 'gathering2', 'exchange2'];
 
 const getPackageById = async (req,res) =>{
   try {
-    const searchedPackage = await package.findById(req.params._id);
+    const searchedPackage = await Package.findById(req.params._id);
 
     if (!searchedPackage) {
       return res.status(404).send({ status: 404, message: 'Package not found' });
@@ -164,7 +164,11 @@ const listAllPackages = async (req, res) => {
 const listPackagesByPoint = async (req, res) => {
   try {
 
+    if (!req.cookies.workplace) {
+      return res.status(404).send({ status: 404, message: 'no workplace found'});
+    }
     const pointId = req.cookies.workplace;
+
 
     /* auth
     if (req.cookies.workplace !== pointId) {
@@ -248,7 +252,10 @@ const listPackagesByPoint = async (req, res) => {
 //chỉ thống kê kê hàng đi đến điểm ngay sau, đến từ điểm ngay trước
 const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đến
   try {
-    const pointId = req.params.pointId;
+    if (!req.cookies.workplace) {
+      return res.status(404).send({ status: 404, message: 'no workplace found'});
+    }
+    const pointId = req.cookies.workplace;
 
     let incomingCount = 0;
     let outgoingCount = 0;
@@ -321,7 +328,11 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
 const listOutgoingQueuedPackages = async (req, res) => {
   try {
 
+    if (!req.cookies.workplace) {
+      return res.status(404).send({ status: 404, message: 'no workplace found'});
+    }
     const pointId = req.cookies.workplace;
+
     /* auth
     if (req.cookies.workplace !== pointId) {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
@@ -370,7 +381,11 @@ const listOutgoingQueuedPackages = async (req, res) => {
 const listIncomingQueuedPackages = async (req, res) => {
   try {
 
+    if (!req.cookies.workplace) {
+      return res.status(404).send({ status: 404, message: 'no workplace found'});
+    }
     const pointId = req.cookies.workplace;
+
 
     /* auth
     if (req.cookies.workplace !== pointId) {
@@ -442,7 +457,7 @@ const listFiveRecentPackages = async (req, res) => {
     let listPackages;
 
     if (role === 'ceo') {
-      listPackages = await package.find().sort({ sendDate: -1 }).limit(5);
+      listPackages = await Package.find().sort({ sendDate: -1 }).limit(5);
     } else if (role === 'manager_gather' || role === 'manager_exchange') {
       const pointId = req.cookies.workplace;
       listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);

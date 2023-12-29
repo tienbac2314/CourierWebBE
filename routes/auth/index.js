@@ -26,6 +26,7 @@ router.post("/delete_user_by_id", userMiddleware.userRoleAuth("manager_exchange"
 router.post("/update_user_by_id", userMiddleware.userRoleAuth("manager_exchange", 1), user.updateUserById);
 router.get("/get_user_by_id/:_id", userMiddleware.userRoleAuth("employee_exchange", 1), user.getUserById);
 router.get("/manageEmployee", userMiddleware.userRoleAuth("manager_exchange", 1), user.manageEmployee);
+router.get("/get_all_employees", userMiddleware.userRoleAuth("ceo"), user.getAllEmployeeUsers);
 
 //package
 router.post("/add_package", userMiddleware.userRoleAuth("employee_exchange"), package.addNewPackage);

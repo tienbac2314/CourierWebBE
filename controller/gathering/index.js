@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Gathering = require("../../models/gathering/index");
+const User = require("../../models/user/index");
 const userMiddleware = require("../../middleware/user");
 const { getManagerGather } = require ("../user");
 const moment = require('moment');
@@ -7,7 +8,22 @@ const moment = require('moment');
 
 const addNewGathering = async (req, res) => {
   try {
+    const { manager, ...updatedData} = req.body;
+
     const newGathering = await Gathering.insertMany(req.body);
+    const newManager = await User.findByIdAndUpdate(
+      manager,
+      {
+        $set: {
+          role: 'manager_gather',
+          gathering: newGathering._id,
+        },
+        $unset: {
+          exchange: 1,
+        },
+      },
+      { new: true }
+    );
 
     return res.status(200).send({ status: 200, newGathering });
 
@@ -22,7 +38,7 @@ const updateGatheringById = async (req, res) => {
 
     //nếu sửa trường manager thì sửa cả db của user tương ứng
     if (manager) {
-      userMiddleware.updateUserById("gathering", _id, manager);
+      userMiddleware.updateWorkplace("gathering", _id, manager);
     }
     const updatedGathering = await Gathering.findByIdAndUpdate(_id, updatedData, { new: true });
     
@@ -96,6 +112,7 @@ const getGatheringById = async (req, res) => {
 //   }
 // };
 
+// Thống kê toàn bộ các điểm tập kết
 const getAllGathering = async (req, res) => {
   try {
     const listGathering = await Gathering.find();

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
-const user = require("../../models/user/index");
+const User = require("../../models/user/index");
 const userMiddleware = require("../../middleware/user");
 const moment = require('moment')
 const { getManagerExchange }= require ("../user");
@@ -9,10 +9,24 @@ const { getManagerExchange }= require ("../user");
 
 const addNewExchange = async (req, res) => {
   try {
-    const newExchange = await Exchange.insertMany(req.body);
+    const { managerId, ...updatedData} = req.body;
 
-    return res.status(200).send({ status: 200, newExchange });
+    const newExchange = await Exchange.insertMany(req.body);
+    const newManager = await User.findByIdAndUpdate(
+      managerId,
+      {
+        $set: {
+          role: 'manager_gather',
+          exchange: newExchange._id,
+        },
+        $unset: {
+          gathering: 1,
+        },
+      },
+      { new: true }
+    );
     
+    return res.status(200).send({ status: 200, newExchange });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
@@ -22,7 +36,7 @@ const updateExchangeById = async (req, res) => {
   try {
     const { _id, manager, ...updatedData } = req.body;
     if (manager) {
-      userMiddleware.updateUserById("exchange", _id, manager);
+      userMiddleware.updateWorkplace("exchange", _id, manager);
     }
     const updatedExchange = await Exchange.findByIdAndUpdate(_id, updatedData, { new: true });
 

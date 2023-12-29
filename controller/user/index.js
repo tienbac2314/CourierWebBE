@@ -4,11 +4,11 @@ const { SECRET } = require("../../config");
 const { insertNewDocument, findOne, findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
 const { parse, format} = require('date-fns');
-const exchange = require("../../models/exchange/index");
+const User = require("../../models/user/index");
+const Exchange = require("../../models/exchange/index");
+const Gathering = require("../../models/gathering/index");
 const exchangeMiddleware = require("../../middleware/exchange");
-const gathering = require("../../models/gathering/index");
 const gatheringMiddleware = require("../../middleware/gathering");
-const user = require("../../models/user/index");
 const userMiddleware = require("../../middleware/user");
 const moment = require('moment');
 const { ObjectID } = require("../../types");
@@ -164,7 +164,7 @@ const logoutUser = async (req, res) => {
 
 const getUserById = async (req, res) => {
   try {
-    const searchedUser = await user.findById(req.param._id);
+    const searchedUser = await User.findById(req.param._id);
 
     if (!searchedUser) {
       return res.status(404).send({ status: 404, message: 'User not found' });
@@ -176,14 +176,29 @@ const getUserById = async (req, res) => {
   }
 };
 
+// thống kê tất cả user role employee
+const getAllEmployeeUsers = async (req, res) => {
+  try {
+    const employeeUsers = await User.find(
+      { role: { $regex: /employee/i } },
+      { _id: 1, name: 1, email: 1 }
+    );
+
+    return res.status(200).send({ status: 200, employees: employeeUsers });
+  } catch (error) {
+    console.error('Error getting employee users:', error.message);
+    throw error;
+  }
+};
+
 const updateUserById = async (req,res) => {
     try {
         const { _id, ...updatedData } = req.body;
         const currentUserRole = req.cookies.role;
-        const targetedUser = await user.findById(_id);
+        const targetedUser = await User.findById(_id);
 
         if (userMiddleware.hasPermission(currentUserRole, targetedUser.role, 0)){
-          const updatedUser = await user.findByIdAndUpdate(_id, updatedData, { new: true });
+          const updatedUser = await User.findByIdAndUpdate(_id, updatedData, { new: true });
 
           if (!updatedUser) {
           return res.status(404).send({ status: 404, message: 'User not found' });
@@ -232,7 +247,7 @@ const manageEmployee = async (req, res) => {
       break;
   }
 
-  const listEmployee = await user.find(filter);
+  const listEmployee = await User.find(filter);
 
     const simplifiedList = listEmployee.map(employee => ({
       id: employee._id,
@@ -251,7 +266,7 @@ const manageEmployee = async (req, res) => {
 };
 
 const getManagerGather = async (id) => {
-  const response = user.findOne({
+  const response = User.findOne({
     gathering: new ObjectID(id),
     role:"manager_gather",
   })
@@ -262,7 +277,7 @@ const getManagerGather = async (id) => {
 }
 
 const getManagerExchange = async (id) => {
-  const response = user.findOne({
+  const response = User.findOne({
     exchange: new ObjectID(id),
     role:"manager_exchange",
   })
@@ -277,6 +292,7 @@ module.exports = {
     loginUser,
     logoutUser,
     getUserById,
+    getAllEmployeeUsers,
     updateUserById,
     deleteUserById,
     manageEmployee,
