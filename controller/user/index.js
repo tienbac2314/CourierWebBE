@@ -64,6 +64,13 @@ const signUpUser = async (req, res) => {
           [workplace_type]: workplace,
           role: workplace_type.includes("exchange") ? "manager_exchange" : workplace_type.includes("gathering") ? "manager_gather" : undefined,
         };
+
+        if (workplace_type === 'exchange') {
+          await userMiddleware.updateWorkplace('exchange', workplace);
+        } else if (workplace_type === 'gathering') {
+          await userMiddleware.updateWorkplace('gathering', workplace);
+        }
+
         break;
       case "manager_gather":
           new_user = {
