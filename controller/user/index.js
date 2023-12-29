@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const { SECRET } = require("../../config");
 const { insertNewDocument, findOne, findOneAndSelect } = require("../../helpers");
 const Joi = require("joi");
-const { parse, format} = require('date-fns');
 const User = require("../../models/user/index");
 const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");

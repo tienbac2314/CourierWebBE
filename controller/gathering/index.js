@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const Exchange = require("../../models/exchange/index");
 const Gathering = require("../../models/gathering/index");
 const User = require("../../models/user/index");
 const userMiddleware = require("../../middleware/user");
@@ -148,6 +149,17 @@ const getAllGathering = async (req, res) => {
   }
 };
 
+const getTotalCounts = async (req, res) => {
+  try {
+    const gatheringCount = await Gathering.countDocuments();
+    const exchangeCount = await Exchange.countDocuments();
+
+    return res.status(200).send({ status: 200, gatheringCount, exchangeCount});
+  } catch (error) {
+    return res.status(500).send({ status: 500, message: error });
+    throw error;
+  }
+};
 
 module.exports = {
   addNewGathering,
@@ -155,4 +167,5 @@ module.exports = {
   deleteGatheringById,
   getGatheringById,
   getAllGathering,
+  getTotalCounts,
 };
