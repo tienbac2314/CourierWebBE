@@ -73,7 +73,7 @@ const deleteGatheringById = async (req, res) => {
 
 const getGatheringById = async (req, res) => {
   try {
-    const searchedGathering = await Gathering.findById(req.param._id);
+    const searchedGathering = await Gathering.findById(req.params._id);
 
     if (!searchedGathering) {
       return res.status(404).send({ status: 404, message: 'Gathering not found' });

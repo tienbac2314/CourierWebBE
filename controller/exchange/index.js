@@ -29,7 +29,7 @@ const addNewExchange = async (req, res) => {
       { new: true }
     );
 
-    return res.status(200).send({ status: 200, newExchange, newManager });
+    return res.status(200).send({ status: 200, newExchange});
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }
