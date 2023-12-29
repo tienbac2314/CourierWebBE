@@ -6,27 +6,30 @@ const userMiddleware = require("../../middleware/user");
 const moment = require('moment')
 const { getManagerExchange }= require ("../user");
 
-
 const addNewExchange = async (req, res) => {
   try {
-    const { managerId, ...updatedData} = req.body;
+    const { manager, ...updatedData } = req.body;
 
-    const newExchange = await Exchange.insertMany(req.body);
+    // Chèn tài liệu mới vào collection Exchange và lấy _id của nó
+    const newExchange = await Exchange.insertMany([req.body]);
+    const exchangeId = newExchange[0]._id;
+
+    // Cập nhật thông tin của User, đặc biệt là đặt role và exchange
     const newManager = await User.findByIdAndUpdate(
-      managerId,
+      manager,
       {
-        $set: {
-          role: 'manager_gather',
-          exchange: newExchange._id,
-        },
         $unset: {
           gathering: 1,
+        },
+        $set: {
+          role: "manager_exchange",
+          exchange: exchangeId,
         },
       },
       { new: true }
     );
-    
-    return res.status(200).send({ status: 200, newExchange });
+
+    return res.status(200).send({ status: 200, newExchange, newManager });
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }

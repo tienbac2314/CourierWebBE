@@ -9,25 +9,28 @@ const moment = require('moment');
 
 const addNewGathering = async (req, res) => {
   try {
-    const { manager, ...updatedData} = req.body;
+    const { manager, ...updatedData } = req.body;
 
-    const newGathering = await Gathering.insertMany(req.body);
+    // Chèn tài liệu mới vào collection Gather và lấy _id của nó
+    const newGathering = await Gathering.insertMany([req.body]);
+    const gatheringId = newGathering[0]._id;
+
+    // Cập nhật thông tin của User, đặc biệt là đặt role và gathering
     const newManager = await User.findByIdAndUpdate(
       manager,
       {
-        $set: {
-          role: 'manager_gather',
-          gathering: newGathering._id,
-        },
         $unset: {
           exchange: 1,
+        },
+        $set: {
+          role: "manager_gather",
+          gathering: gatheringId,
         },
       },
       { new: true }
     );
 
-    return res.status(200).send({ status: 200, newGathering });
-
+    return res.status(200).send({ status: 200, newGathering});
   } catch (e) {
     res.status(400).send({ status: 400, message: e.message });
   }

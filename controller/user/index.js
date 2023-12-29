@@ -268,7 +268,7 @@ const getManagerGather = async (id) => {
 const getManagerExchange = async (id) => {
   const response = User.findOne({
     exchange: new ObjectID(id),
-    role:"manager_exchange",
+    role: "manager_exchange",
   })
   if(response) {
     return response;

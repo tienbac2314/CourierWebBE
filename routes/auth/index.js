@@ -47,7 +47,7 @@ router.post("/add_exchange", userMiddleware.userRoleAuth("ceo"), exchange.addNew
 router.post("/update_exchange_by_id", userMiddleware.userRoleAuth("ceo"), exchange.updateExchangeById);
 router.post("/delete_exchange_by_id", userMiddleware.userRoleAuth("ceo"), exchange.deleteExchangeById);
 router.get("/get_exchange_by_gather/:_id", userMiddleware.userRoleAuth("ceo"), exchange.getExchangeByGather);
-router.get("/get_all_exchange", userMiddleware.userRoleAuth("employee_exchange"), exchange.getAllExchange);
+router.get("/get_all_exchange", userMiddleware.userRoleAuth("employee_exchange", 1), exchange.getAllExchange);
 
 //gathering ( diem tap ket)
 router.post("/add_gathering", userMiddleware.userRoleAuth("ceo"), gathering.addNewGathering);
