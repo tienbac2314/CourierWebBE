@@ -200,17 +200,25 @@ const listPackagesByPoint = async (req, res) => {
         }
       }
 
-      // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo tất cả điểm đã qua hiện success
+      // đảm bảo status về shipping khi dùng ở điểm sau, đảm bảo nếu gói hàng đã qua sẽ hiện success
       if (packages.status === 'shipping') {
-        if (locationFields.indexOf(packages.nextStep) > locationFields.indexOf(packages.currentLocation)) {
+        if (locationFields.indexOf(packages.nextStep) >= locationFields.indexOf(simplifiedPackage.location)) {
           simplifiedPackage.status = 'shipping';
         } else {
           simplifiedPackage.status = 'success';
         }
-      } else if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(packages.currentLocation)) {
-        simplifiedPackage.status = 'shipping';
-      } else {
-        simplifiedPackage.status = packages.status;
+      } else if (packages.status === 'success'){
+        if (locationFields.indexOf(packages.nextStep) < locationFields.indexOf(simplifiedPackage.location)) {
+          simplifiedPackage.status = 'shipping';
+        } else {
+          simplifiedPackage.status = 'success';
+        }
+      } else { 
+        if (simplifiedPackage.location !== 'exchange2'){
+          simplifiedPackage.status = 'success';
+        } else {
+          simplifiedPackage.status = packages.status; 
+        }
       }
 
       // đếm lượng hàng cùng các status
