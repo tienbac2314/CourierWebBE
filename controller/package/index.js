@@ -114,7 +114,7 @@ const listAllPackages = async (req, res) => {
     if (req.cookies.role === 'manager_gather' || req.cookies.role === 'manager_exchange' || req.cookies.role === 'employee_exchange'){
         return await listPackagesByPoint(req, res);
     } else {
-    const listPackages = await packageMiddleware.filterByTime('all', req.query, package);
+    const listPackages = await packageMiddleware.filterByTime('all', req.query, Package);
     if (!listPackages.length) {
       return res.status(404).send({ status: 404, message: 'Packages not found' });
     }
@@ -181,7 +181,7 @@ const listPackagesByPoint = async (req, res) => {
     let noReceiveCount = 0;
     let receivedCount = 0;
 
-    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
+    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
     const simplifiedList = listPackages.map((packages) => {
       const simplifiedPackage = {
         id: packages._id,
@@ -260,7 +260,7 @@ const listInorOutPackagesByPoint = async (req, res) => { //đã đi và đã đ�
     let incomingCount = 0;
     let outgoingCount = 0;
 
-    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
+    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
 
     const simplifiedList = listPackages.map((packages) => {
       const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
@@ -338,7 +338,7 @@ const listOutgoingQueuedPackages = async (req, res) => {
       return res.status(405).send({ status: 405, message: 'Method not allowed' });
     }
     */
-    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
+    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
 
     const simplifiedList = listPackages.map((packages) => {
       const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
@@ -393,7 +393,7 @@ const listIncomingQueuedPackages = async (req, res) => {
     }
     */
 
-    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
+    const listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
     const simplifiedList = listPackages.map((packages) => {
 
       const weight = packages.weight !== undefined ? String(packages.weight) : ''; // Convert to string or assign empty string if undefined
@@ -460,7 +460,7 @@ const listFiveRecentPackages = async (req, res) => {
       listPackages = await Package.find().sort({ sendDate: -1 }).limit(5);
     } else if (role === 'manager_gather' || role === 'manager_exchange') {
       const pointId = req.cookies.workplace;
-      listPackages = await packageMiddleware.filterByTime(pointId, req.query, package);
+      listPackages = await packageMiddleware.filterByTime(pointId, req.query, Package);
     } else {
       return res.status(403).send({ status: 403, message: 'Permission denied' });
     }
