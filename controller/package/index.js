@@ -188,7 +188,6 @@ const listPackagesByPoint = async (req, res) => {
         id: packages._id,
         name: packages.name,
         sendDate: moment(packages.sendDate).format('DD-MM-YYYY'),
-        weight: weight,
         status: packages.status,
         location: '',
       };
