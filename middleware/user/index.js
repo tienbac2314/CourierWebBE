@@ -100,36 +100,38 @@ const checkUser = (req, res, next) => {
   }
 };
 
-// thay đổi trưởng điểm
-const updateWorkplace = async (workplace_type, workplaceId, userId) => {
+// thay đổi trưởng điểm, xoá chức vụ của trưởng điểm hiện tại
+const updateWorkplace = async (workplace_type, workplaceId, userId = 0) => {
   try {
     
     // Lấy thông tin trưởng cũ và xoá tham chiếu nơi làm việc cũ
-    let oldManager;
-    let currentWorkplace;
     if (workplace_type === 'exchange'){
-      currentWorkplace = Exchange.findById(workplaceId);
-      oldManager = User.findByIdAndUpdate(
-        currentWorkplace.manager,
-        { role: 'employee_exchange' },
+      let currentWorkplace = await Exchange.findById(workplaceId);
+      const managerId = currentWorkplace.manager;
+      oldManager = await User.findByIdAndUpdate(
+        managerId,
+        { role: "employee_exchange" },
         { new: true }
       );
     } else if (workplace_type === 'gathering'){
-      currentWorkplace = Gathering.findById(workplaceId);
-      oldManager = User.findByIdAndUpdate(
-        currentWorkplace.manager,
-        { role: 'employee_gather' },
+      const currentWorkplace = await Gathering.findById(workplaceId);
+      const managerId = currentWorkplace.manager;
+      oldManager = await User.findByIdAndUpdate(
+        managerId,
+        { role: "employee_gather" },
         { new: true }
       );
     }
 
-    // Cập nhật thông tin mới cho người dùng
-    const updatedManager = await User.findByIdAndUpdate(userId, { [workplace_type]: workplaceId }, { new: true });
+    // Cập nhật thông tin mới cho người dùng nếu yêu cầu
+    if (userId !== 0){
+      const updatedManager = await User.findByIdAndUpdate(userId, { [workplace_type]: workplaceId }, { new: true });
 
-    if (!updatedManager) {
-      console.error('User not found');
+      if (!updatedManager) {
+        console.error('User not found');
+      }
     }
-
+  
     return oldManager;
   } catch (error) {
     console.error(error.message);
