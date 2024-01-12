@@ -18,7 +18,7 @@ db.once("open", function () {
 });
 
 const corsOptions = {
-  origin: 'http://localhost:3000', // Replace with your frontend's URL
+  origin: 'http://103.176.147.108:3000', // Replace with your frontend's URL
   credentials: true // Allow credentials (cookies)
 };
 // * Cors
